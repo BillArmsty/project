@@ -18,7 +18,11 @@ export class AuthService {
   ) {}
 
   /**
-   * Validates user login via email and password.
+   * Validates a user's login credentials.
+   * @param email - The user's email.
+   * @param password - The user's plaintext password.
+   * @returns The user entity if authentication is successful.
+   * @throws BadRequestException if the email or password is incorrect.
    */
   async validateUser(email: string, password: string): Promise<UserEntity> {
     const user: UserEntity = await this.userService.findOne(email);
@@ -37,7 +41,9 @@ export class AuthService {
   }
 
   /**
-   * Issues a JWT token after a successful login.
+   * Logs in a user and returns a JWT token.
+   * @param loginInput - The user's login details (email, password).
+   * @returns An object containing the JWT access token and user details.
    */
   async login(loginInput: LoginRequestDTO): Promise<LoginResponseDTO> {
     const user: UserEntity = await this.validateUser(
@@ -46,6 +52,7 @@ export class AuthService {
     );
 
     const payload = { email: user.email, sub: user.id };
+
     return {
       access_token: this.jwtService.sign(payload),
       user: {
@@ -57,29 +64,34 @@ export class AuthService {
   }
 
   /**
-   * Registers a new user.
+   * Registers a new user, hashes their password, and issues a JWT token.
+   * @param registerData - The user's registration details (email, password).
+   * @returns An object containing the JWT access token and user details.
+   * @throws BadRequestException if the email already exists.
    */
   async register(
     registerData: RegisterRequestDTO,
   ): Promise<RegisterResponseDTO> {
+    // Check if email already exists
     const existingUser = await this.userService.findOne(registerData.email);
     if (existingUser) {
       throw new BadRequestException('Email already exists');
     }
 
+    // Hash the password before storing it
     const hashedPassword = await bcrypt.hash(registerData.password, 10);
 
+    // Create the new user
     const newUser = await this.userService.createUser({
       email: registerData.email,
       password: hashedPassword,
     });
 
+    // Generate a JWT token for the new user
     const token = this.jwtService.sign({
       email: newUser.email,
       id: newUser.id,
     });
-
-   
 
     return {
       access_token: token,
