@@ -22,7 +22,17 @@ model JournalEntry {
   userId    String
   title     String
   content   String
-  category  String
+  category   Category @default(OTHER) 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum Category {
+  PERSONAL
+  WORK
+  TRAVEL
+  HEALTH
+  FINANCE
+  EDUCATION
+  OTHER
 }
