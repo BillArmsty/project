@@ -1,4 +1,7 @@
-import { ObjectType, Field } from '@nestjs/graphql';
+import { ObjectType, Field, registerEnumType } from '@nestjs/graphql';
+
+import { Category } from '@prisma/client';
+registerEnumType(Category, { name: 'Category' });
 
 @ObjectType()
 export class JournalEntry {
@@ -14,8 +17,8 @@ export class JournalEntry {
   @Field()
   content: string;
 
-  @Field()
-  category: string;
+  @Field(() => Category)
+  category: Category;
 
   @Field()
   createdAt: Date;

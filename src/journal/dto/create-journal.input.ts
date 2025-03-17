@@ -1,4 +1,5 @@
 import { InputType, Field } from '@nestjs/graphql';
+import { Category } from '@prisma/client'
 
 @InputType()
 export class CreateJournalInput {
@@ -8,6 +9,6 @@ export class CreateJournalInput {
   @Field()
   content: string;
 
-  @Field()
-  category: string;
+  @Field(() => Category)
+  category: Category;
 }
