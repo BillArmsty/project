@@ -26,3 +26,50 @@ export class JournalEntry {
   @Field()
   updatedAt: Date;
 }
+
+
+
+@ObjectType()
+export class HeatmapData {
+  @Field()
+  date: string;
+
+  @Field()
+  count: number;
+}
+
+@ObjectType()
+export class CategoryDistributionData {
+  @Field()
+  category: string;
+
+  @Field()
+  count: number;
+}
+
+@ObjectType()
+export class WordTrendData {
+  @Field()
+  word: string;
+
+  @Field()
+  count: number;
+}
+
+@ObjectType()
+export class EntryLengthStats {
+  @Field()
+  avgLength: number;
+
+  @Field()
+  maxLength: number;
+}
+
+@ObjectType()
+export class TimeOfDayData {
+  @Field()
+  hour: number;
+
+  @Field()
+  count: number;
+}
