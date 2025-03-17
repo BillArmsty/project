@@ -1,7 +1,17 @@
-import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { User } from '@prisma/client';
+import { ObjectType, Field } from '@nestjs/graphql';
 
 @ObjectType()
-export class User {
-  @Field(() => Int, { description: 'Example field (placeholder)' })
-  exampleField: number;
+export class UserEntity implements User {
+  @Field()
+  id: string;
+
+  @Field()
+  email: string;
+
+  @Field()
+  password: string;
+
+  @Field()
+  createdAt: Date;
 }

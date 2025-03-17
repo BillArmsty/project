@@ -1,35 +1,30 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { Resolver, Mutation, Args } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
-import { Auth } from './entities/auth.entity';
-import { CreateAuthInput } from './dto/create-auth.input';
-import { UpdateAuthInput } from './dto/update-auth.input';
+import { RegisterRequestDTO } from './dto/register-request.dto';
+import { RegisterResponseDTO } from './dto/register-response.dto';
+import { LoginResponseDTO } from './dto/login-response.dto';
+import { LoginRequestDTO } from './dto/login-request.dto';
+import { Public } from './decorators/public.decorator';
 
-@Resolver(() => Auth)
+@Resolver()
 export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
 
-  @Mutation(() => Auth)
-  createAuth(@Args('createAuthInput') createAuthInput: CreateAuthInput) {
-    return this.authService.create(createAuthInput);
+  @Public()
+  @Mutation(() => RegisterResponseDTO)
+  async register(
+    @Args('registerInput') registerInput: RegisterRequestDTO,
+  ): Promise<RegisterResponseDTO> {
+    return this.authService.register(registerInput);
   }
 
-  @Query(() => [Auth], { name: 'auth' })
-  findAll() {
-    return this.authService.findAll();
+  @Public()
+  @Mutation(() => LoginResponseDTO)
+  async login(
+    @Args('loginInput') loginInput: LoginRequestDTO,
+  ): Promise<LoginResponseDTO> {
+    return this.authService.login(loginInput);
   }
 
-  @Query(() => Auth, { name: 'auth' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.authService.findOne(id);
-  }
 
-  @Mutation(() => Auth)
-  updateAuth(@Args('updateAuthInput') updateAuthInput: UpdateAuthInput) {
-    return this.authService.update(updateAuthInput.id, updateAuthInput);
-  }
-
-  @Mutation(() => Auth)
-  removeAuth(@Args('id', { type: () => Int }) id: number) {
-    return this.authService.remove(id);
-  }
 }

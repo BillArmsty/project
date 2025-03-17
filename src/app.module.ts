@@ -6,15 +6,16 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ConfigModule } from '@nestjs/config';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 // import { PrismaModule } from './prisma/prisma.module';
-// import { UserModule } from './user/user.module';
-// import { JournalModule } from './journal/journal.module';
+
 import { AuthModule } from './auth/auth.module';
 import { JournalModule } from './journal/journal.module';
-import { UsersModule } from './users/users.module';
+import { UserModule } from './users/users.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: 'schema.gql',
@@ -24,7 +25,7 @@ import { UsersModule } from './users/users.module';
     }),
     AuthModule,
     JournalModule,
-    UsersModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],

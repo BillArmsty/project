@@ -1,26 +1,81 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserInput } from './dto/create-user.input';
-import { UpdateUserInput } from './dto/update-user.input';
+import {
+  Injectable,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateUserInput } from './dto/create-user.dto';
+import { UserEntity } from './entities/user.entity';
 
 @Injectable()
-export class UsersService {
-  create(createUserInput: CreateUserInput) {
-    return 'This action adds a new user';
+export class UserService {
+  constructor(private prismaService: PrismaService) {}
+  async createUser(createUserInput: CreateUserInput) {
+    const { email, password } = createUserInput;
+
+    const existingUser = await this.prismaService.user.findUnique({
+      where: {
+        email,
+      },
+    });
+    if (existingUser) {
+      throw new ConflictException('Email Is Already Registered');
+    }
+
+    const user = await this.prismaService.user.create({
+      data: {
+        email,
+        password,
+      },
+    });
+
+    return user;
   }
 
   findAll() {
-    return `This action returns all users`;
+    return this.prismaService.user.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findById(id: string) {
+    const user = await this.prismaService.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        createdAt: true,
+      },
+    });
+    if (!user) throw new BadRequestException(`User with ID #${id} not found`);
+    return user;
   }
 
-  update(id: number, updateUserInput: UpdateUserInput) {
-    return `This action updates a #${id} user`;
+  async findOne(email: string): Promise<UserEntity | null> {
+    const user = await this.prismaService.user.findUnique({
+      where: { email },
+
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        createdAt: true,
+      },
+    });
+    if (!user) {
+      return null;
+    }
+    // throw new BadRequestException(`User with email #${email} not found`);
+
+    return user;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(email: string) {
+    const existingUser = await this.prismaService.user.findUnique({
+      where: { email },
+    });
+    if (!existingUser)
+      throw new BadRequestException(`User with email #${email} not found`);
+
+    return this.prismaService.user.delete({ where: { email } });
   }
 }
