@@ -7,6 +7,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { UserModule } from '../users/users.module';
 import { JwtAuthGuard } from './guards/jwt.guard';
+import { RolesGuard } from './guards/roles.guard';
 
 @Module({
   imports: [
@@ -31,7 +32,7 @@ import { JwtAuthGuard } from './guards/jwt.guard';
       inject: [ConfigService],
     }),
   ],
-  providers: [AuthService, JwtAuthGuard, JwtStrategy],
+  providers: [AuthService, JwtAuthGuard, JwtStrategy, RolesGuard],
   exports: [AuthService, JwtModule],
 })
 export class AuthModule {}

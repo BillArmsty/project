@@ -29,6 +29,9 @@ input CreateUserInput {
 
   """Password of the user"""
   password: String!
+
+  """Role of the user"""
+  role: String
 }
 
 """
@@ -67,6 +70,8 @@ type LoginResponseDTO {
 }
 
 type Mutation {
+  changeUserRole(id: String!, newRole: Role!): UserEntity!
+
   """Create a new journal entry for the authenticated user"""
   createJournalEntry(data: CreateJournalInput!): JournalEntry!
   createUser(createUserInput: CreateUserInput!): UserEntity!
@@ -117,11 +122,19 @@ type Query {
 input RegisterRequestDTO {
   email: String!
   password: String!
+  role: Role
 }
 
 type RegisterResponseDTO {
   access_token: String!
   user: UserEntity!
+}
+
+"""The roles a user can have"""
+enum Role {
+  ADMIN
+  SUPERADMIN
+  USER
 }
 
 type TimeOfDayData {
@@ -141,6 +154,7 @@ type UserEntity {
   email: String!
   id: String!
   password: String!
+  role: Role!
 }
 
 type WordTrendData {

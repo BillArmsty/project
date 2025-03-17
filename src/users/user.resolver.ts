@@ -1,10 +1,11 @@
-import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
+import { Resolver, Mutation, Args, Query, Context } from '@nestjs/graphql';
 import { UserService } from './users.service';
 import { UserEntity } from './entities/user.entity';
 import { CreateUserInput } from './dto/create-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import {  UseGuards } from '@nestjs/common';
+import {  UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Role } from '@prisma/client';
 
 @Resolver(() => UserEntity)
 export class UserResolver {
@@ -14,6 +15,25 @@ export class UserResolver {
   async createUser(@Args('createUserInput') createUserInput: CreateUserInput) {
     return this.userService.createUser(createUserInput);
   }
+
+  @Mutation(() => UserEntity)
+  async changeUserRole(
+    @Args('id') id: string,
+    @Args('newRole', { type: () => Role }) newRole: Role,
+    @Context() context: any,
+  ): Promise<UserEntity> {
+    const currentUser = context.user;
+
+    // Check if the current user is  SUPERADMIN
+    if (currentUser.role !== Role.SUPERADMIN) {
+      throw new UnauthorizedException(
+        'You do not have permission to change user roles',
+      );
+    }
+
+    return this.userService.updateUserRole(id, newRole);
+  }
+
 
 
 

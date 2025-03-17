@@ -7,6 +7,7 @@ import { RegisterRequestDTO } from '../auth/dto/register-request.dto';
 import { LoginRequestDTO } from './dto/login-request.dto';
 import { LoginResponseDTO } from './dto/login-response.dto';
 import { RegisterResponseDTO } from './dto/register-response.dto';
+import { Role } from '@prisma/client';
 
 @Injectable({ scope: Scope.REQUEST })
 export class AuthService {
@@ -51,7 +52,7 @@ export class AuthService {
       loginInput.password,
     );
 
-    const payload = { email: user.email, sub: user.id };
+    const payload = { email: user.email, sub: user.id , role: user.role};
 
     return {
       access_token: this.jwtService.sign(payload),
@@ -85,6 +86,7 @@ export class AuthService {
     const newUser = await this.userService.createUser({
       email: registerData.email,
       password: hashedPassword,
+      role: registerData.role  || Role.USER,
     });
 
     // Generate a JWT token for the new user

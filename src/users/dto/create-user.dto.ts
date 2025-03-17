@@ -7,4 +7,7 @@ export class CreateUserInput {
 
   @Field(() => String, { description: 'Password of the user' })
   password: string;
+
+  @Field(() => String, { nullable: true, description: 'Role of the user' })
+  role?: string;
 }

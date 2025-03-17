@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserInput } from './dto/create-user.dto';
 import { UserEntity } from './entities/user.entity';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -58,6 +59,7 @@ export class UserService {
         id: true,
         email: true,
         password: true,
+        role: true,
         createdAt: true,
       },
     });
@@ -67,6 +69,13 @@ export class UserService {
     // throw new BadRequestException(`User with email #${email} not found`);
 
     return user;
+  }
+
+  async updateUserRole(id: string, newRole: Role): Promise<UserEntity> {
+    return this.prismaService.user.update({
+      where: { id },
+      data: { role: newRole },
+    });
   }
 
   async remove(email: string) {
