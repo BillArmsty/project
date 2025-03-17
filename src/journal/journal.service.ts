@@ -1,26 +1,41 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateJournalInput } from './dto/create-journal.input';
 import { UpdateJournalInput } from './dto/update-journal.input';
 
 @Injectable()
 export class JournalService {
-  create(createJournalInput: CreateJournalInput) {
-    return 'This action adds a new journal';
+  constructor(private prisma: PrismaService) {}
+
+  async create(userId: string, data: CreateJournalInput) {
+    return this.prisma.journalEntry.create({
+      data: { userId, ...data },
+    });
   }
 
-  findAll() {
-    return `This action returns all journal`;
+  async findAll(userId: string) {
+    return this.prisma.journalEntry.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} journal`;
+  async findOne(id: string, userId: string) {
+    const entry = await this.prisma.journalEntry.findUnique({ where: { id } });
+    if (!entry || entry.userId !== userId) throw new NotFoundException('Journal not found');
+    return entry;
   }
 
-  update(id: number, updateJournalInput: UpdateJournalInput) {
-    return `This action updates a #${id} journal`;
+  async update(userId: string, data: UpdateJournalInput) {
+    const entry = await this.findOne(data.id, userId);
+    return this.prisma.journalEntry.update({
+      where: { id: entry.id },
+      data,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} journal`;
+  async remove(id: string, userId: string) {
+    const entry = await this.findOne(id, userId);
+    return this.prisma.journalEntry.delete({ where: { id: entry.id } });
   }
 }
