@@ -14,6 +14,9 @@ import { UpdateJournalInput } from './dto/update-journal.input';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { UserEntity } from '../users/entities/user.entity';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Role } from '@prisma/client';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 
 @Resolver(() => JournalEntry)
 export class JournalResolver {
@@ -28,12 +31,29 @@ export class JournalResolver {
   @Mutation(() => JournalEntry, {
     description: 'Create a new journal entry for the authenticated user',
   })
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.USER)
   createJournalEntry(
     @Args('data') data: CreateJournalInput,
     @CurrentUser() user: UserEntity,
   ): Promise<JournalEntry> {
     return this.journalService.create(user.id, data);
+  }
+
+  //Query all journals as admin
+  /**
+   * Query to fetch all journal entries as admin.
+   * Supports pagination with optional page and limit parameters.
+   * @param page - The page number (default: 1).
+   * @param limit - The number of entries per page (default: 10).
+   * @returns A paginated list of journal entries.
+   * @roles ADMIN
+   */
+  @Query(() => [JournalEntry])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  getAllUserJournals(): Promise<JournalEntry[]> {
+    return this.journalService.findAllAdmin();
   }
 
   /**

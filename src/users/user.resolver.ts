@@ -6,6 +6,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import {  UnauthorizedException, UseGuards } from '@nestjs/common';
 import { Role } from '@prisma/client';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 
 @Resolver(() => UserEntity)
 export class UserResolver {
@@ -44,8 +46,9 @@ export class UserResolver {
   }
 
   @Query(() => [UserEntity])
-  @UseGuards(JwtAuthGuard)
-  async findAll() {
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN) 
+  getAllUsers(): Promise<UserEntity[]> {
     return this.userService.findAll();
   }
 

@@ -45,6 +45,24 @@ export class JournalService {
       take: limit,
     });
   }
+
+  //retrieve journals as admin
+  /**
+   * Retrieve all journal entries for all users with pagination.
+   * @param page - The page number for pagination.
+   * @param limit - The number of entries per page.
+   * @returns A paginated list of all journal entries.
+   */
+  async findAllAdmin(
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<JournalEntry[]> {
+    return this.prismaService.journalEntry.findMany({
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+  }
   /**
    * Retrieve a specific journal entry by ID.
    * @param id - The ID of the journal entry.
