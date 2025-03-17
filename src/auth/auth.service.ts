@@ -79,10 +79,7 @@ export class AuthService {
       id: newUser.id,
     });
 
-    // await this.notificationService.sendRegistrationNotification(
-    //   newUser.email,
-    //   newUser.name,
-    // );
+   
 
     return {
       access_token: token,

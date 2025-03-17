@@ -3,8 +3,9 @@
 # ------------------------------------------------------
 
 input CreateJournalInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  category: String!
+  content: String!
+  title: String!
 }
 
 input CreateUserInput {
@@ -20,9 +21,14 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
-type Journal {
-  """Example field (placeholder)"""
-  exampleField: Int!
+type JournalEntry {
+  category: String!
+  content: String!
+  createdAt: DateTime!
+  id: String!
+  title: String!
+  updatedAt: DateTime!
+  userId: String!
 }
 
 input LoginRequestDTO {
@@ -36,19 +42,29 @@ type LoginResponseDTO {
 }
 
 type Mutation {
-  createJournal(createJournalInput: CreateJournalInput!): Journal!
+  """Create a new journal entry for the authenticated user"""
+  createJournalEntry(data: CreateJournalInput!): JournalEntry!
   createUser(createUserInput: CreateUserInput!): UserEntity!
+
+  """Delete a journal entry"""
+  deleteJournalEntry(id: String!): Boolean!
   login(loginInput: LoginRequestDTO!): LoginResponseDTO!
   register(registerInput: RegisterRequestDTO!): RegisterResponseDTO!
-  removeJournal(id: Int!): Journal!
   removeUser(email: String!): UserEntity!
-  updateJournal(updateJournalInput: UpdateJournalInput!): Journal!
+
+  """Update an existing journal entry"""
+  updateJournalEntry(data: UpdateJournalInput!): JournalEntry!
 }
 
 type Query {
   findAll: [UserEntity!]!
   findOne(email: String!): UserEntity!
-  journal(id: Int!): Journal!
+
+  """Fetch all journal entries for the authenticated user"""
+  getJournalEntries: [JournalEntry!]!
+
+  """Fetch a specific journal entry by ID"""
+  getJournalEntry(id: String!): JournalEntry!
   whoAmI: UserEntity!
 }
 
@@ -63,9 +79,10 @@ type RegisterResponseDTO {
 }
 
 input UpdateJournalInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
+  category: String
+  content: String
+  id: String!
+  title: String
 }
 
 type UserEntity {
