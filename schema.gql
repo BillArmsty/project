@@ -25,9 +25,21 @@ type Journal {
   exampleField: Int!
 }
 
+input LoginRequestDTO {
+  email: String!
+  password: String!
+}
+
+type LoginResponseDTO {
+  access_token: String!
+  user: UserEntity!
+}
+
 type Mutation {
   createJournal(createJournalInput: CreateJournalInput!): Journal!
   createUser(createUserInput: CreateUserInput!): UserEntity!
+  login(loginInput: LoginRequestDTO!): LoginResponseDTO!
+  register(registerInput: RegisterRequestDTO!): RegisterResponseDTO!
   removeJournal(id: Int!): Journal!
   removeUser(email: String!): UserEntity!
   updateJournal(updateJournalInput: UpdateJournalInput!): Journal!
@@ -38,6 +50,16 @@ type Query {
   findOne(email: String!): UserEntity!
   journal(id: Int!): Journal!
   whoAmI: UserEntity!
+}
+
+input RegisterRequestDTO {
+  email: String!
+  password: String!
+}
+
+type RegisterResponseDTO {
+  access_token: String!
+  user: UserEntity!
 }
 
 input UpdateJournalInput {
