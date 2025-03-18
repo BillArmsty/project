@@ -100,6 +100,7 @@ export class AuthService {
       user: {
         id: newUser.id,
         email: newUser.email,
+        role: newUser.role,
         createdAt: newUser.createdAt,
       },
     };
