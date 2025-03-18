@@ -1,6 +1,6 @@
 import { InputType, Field } from '@nestjs/graphql';
 import { Role } from '@prisma/client';
-import { IsEmail } from 'class-validator';
+import { IsEmail, IsString, MinLength } from 'class-validator';
 
 @InputType()
 export class RegisterRequestDTO {
@@ -8,6 +8,8 @@ export class RegisterRequestDTO {
   @IsEmail()
   email: string;
 
+  @IsString()
+  @MinLength(6)
   @Field(() => String)
   password: string;
 

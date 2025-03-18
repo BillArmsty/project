@@ -16,6 +16,5 @@ export class CreateJournalInput {
 
   @Field(() => Category)
   @IsString()
-  @MinLength(10)
   category: Category;
 }
