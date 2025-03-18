@@ -35,7 +35,7 @@ async function bootstrap() {
     next();
   });
 
-  await app.listen(3000);
+  await app.listen(8080);
   logger.log('Journal Backend HTTP server listening on port 3000');
 }
 
