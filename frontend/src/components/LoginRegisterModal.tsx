@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import styled from "styled-components";
 import { FaTimes } from "react-icons/fa";
 import { gql, useMutation } from "@apollo/client";
@@ -35,6 +36,7 @@ interface ModalProps {
   onClose: () => void;
 }
 
+// ** Styled Components **
 const Overlay = styled.div`
   position: fixed;
   inset: 0;
@@ -130,17 +132,18 @@ export default function LoginRegisterModal({ isOpen, onClose }: ModalProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string>("");
+  const router = useRouter();
 
   const [register] = useMutation(REGISTER_MUTATION);
   const [login] = useMutation(LOGIN_MUTATION);
 
-  // Email & Password Validation Regex
+  // ** Regex Validation **
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const passwordRegex =
     /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-  // Handle Login/Register Submission
+  // ** Handle Form Submission **
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -160,31 +163,31 @@ export default function LoginRegisterModal({ isOpen, onClose }: ModalProps) {
     }
 
     try {
+      let token = "";
+
       if (isLogin) {
         // **LOGIN REQUEST**
         const { data } = await login({
           variables: { email, password },
         });
 
-        if (data?.login?.access_token) {
-          localStorage.setItem("token", data.login.access_token);
-          window.location.reload(); // Refresh to apply session
-        }
+        token = data?.login?.access_token;
       } else {
         // **REGISTER REQUEST**
         const { data } = await register({
           variables: { email, password },
         });
 
-        if (data?.register?.access_token) {
-          localStorage.setItem("token", data.register.access_token);
-          window.location.reload(); // Refresh to apply session
-        }
+        token = data?.register?.access_token;
       }
 
-      onClose(); // Close modal after successful login/register
-    } catch (err: unknown) {
-      console.error("Auth Error:", err);
+      if (token) {
+        localStorage.setItem("token", token);
+        onClose();
+        router.push("/dashboard");
+      }
+    } catch (error: unknown) {
+      console.error(error);
       setError("Authentication failed. Please check your details.");
     }
   };
