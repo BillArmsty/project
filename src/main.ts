@@ -22,7 +22,12 @@ async function bootstrap() {
 
   const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector));
-  app.enableCors();
+
+
+  app.enableCors({
+    origin: "http://localhost:3000", 
+    credentials: true, 
+  });
 
   // Log each incoming request for debugging
   app.use((req: Request, res: any, next: any) => {
@@ -36,7 +41,7 @@ async function bootstrap() {
   });
 
   await app.listen(8080);
-  logger.log('Journal Backend HTTP server listening on port 3000');
+  logger.log('Journal Backend HTTP server listening on port 8080');
 }
 
 bootstrap();
