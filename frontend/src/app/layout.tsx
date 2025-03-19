@@ -1,17 +1,11 @@
-// import { cookies } from "next/headers";
-import ApolloWrapper from "@/lib/apollo-wrapper";
+"use client";
 
+import ApolloWrapper from "../lib/apollo-wrapper";
+import { ReactNode } from "react";
 
-
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  // const token = (await cookies()).get("token")?.value || "";
-
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
         <ApolloWrapper>{children}</ApolloWrapper>
       </body>

@@ -1,32 +1,73 @@
 "use client";
+
 import { useState } from "react";
-import Head from "next/head";
+import styled from "styled-components";
 import LoginRegisterModal from "../components/LoginRegisterModal";
 
-export default function Home() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+const Container = styled.div`
+  background: url('/image.svg') no-repeat center center;
+  background-size: cover;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: white;
+  padding: 20px;
+`;
+
+const Heading = styled.h1`
+  font-size: 3rem;
+  font-weight: bold;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+`;
+
+const SubText = styled.p`
+  font-size: 1.2rem;
+  max-width: 600px;
+  margin-top: 10px;
+`;
+
+const ButtonGroup = styled.div`
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+`;
+
+const Button = styled.button<{ $primary?: boolean }>`
+  padding: 12px 24px;
+  background: ${({ $primary }) => ($primary ? "#007bff" : "transparent")};
+  color: ${({ $primary }) => ($primary ? "#fff" : "#007bff")};
+  border: 2px solid #007bff;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.3s;
+  &:hover {
+    background: ${({ $primary }) => ($primary ? "#0056b3" : "#007bff")};
+    color: #fff;
+  }
+`;
+
+export default function LandingPage() {
+  const [isModalOpen, setModalOpen] = useState(false);
 
   return (
     <>
-      <Head>
-        <title>Journal App - Capture Your Thoughts</title>
-        <meta name="description" content="A simple and secure journal app to capture your thoughts." />
-      </Head>
+      <Container>
+        <Heading>Discover Your Personalized Journey</Heading>
+        <SubText>
+          At Journify, we craft unique journals that reflect your life experiences and aspirations.
+        </SubText>
+        <ButtonGroup>
+          <Button $primary onClick={() => setModalOpen(true)}>Get Started</Button>
+          <Button onClick={() => console.log("Journals")}>Journals</Button>
+        </ButtonGroup>
+      </Container>
 
-      <main className="flex flex-col items-center justify-center h-screen bg-gradient-to-r from-blue-500 to-purple-600 text-white text-center">
-        <h1 className="text-5xl font-bold mb-6 animate-fade-in">Welcome to Journal App</h1>
-        <p className="text-lg max-w-md mb-8 opacity-90">Capture your thoughts, reflect on your journey, and analyze your habits.</p>
-
-        <button
-          className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold shadow-md hover:bg-gray-100 transition duration-200"
-          onClick={() => setIsModalOpen(true)}
-        >
-          Get Started
-        </button>
-
-        {/* Modal for Login/Register */}
-        <LoginRegisterModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-      </main>
+      {/* Render the Modal */}
+      <LoginRegisterModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} />
     </>
   );
 }
