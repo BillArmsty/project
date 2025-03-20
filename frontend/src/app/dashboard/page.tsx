@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import styled from "styled-components";
 import { FaPlus } from "react-icons/fa";
 import Sidebar from "../../components/Sidebar";
-// import JournalList from "../../components/JournalList";
+import JournalList from "../../components/JournalList";
 import { gql, useQuery } from "@apollo/client";
 import { Pie, Line } from "react-chartjs-2";
 import {
@@ -48,15 +47,17 @@ const GET_JOURNAL_ENTRIES = gql`
 const DashboardContainer = styled.div`
   display: flex;
   height: 100vh;
+  background: #0f172a;
 `;
 
 const ContentArea = styled.div`
   flex: 1;
   padding: 20px;
-  background: #f4f4f4;
+  background: #1e1e2e;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 20px;
 `;
 
 const GridLayout = styled.div`
@@ -66,6 +67,7 @@ const GridLayout = styled.div`
   gap: 20px;
   width: 100%;
   max-width: 1200px;
+  align-items: start;
 
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
@@ -73,14 +75,12 @@ const GridLayout = styled.div`
 `;
 
 const SummaryBox = styled.div`
-  background: #1e1e2e;
+  background: #2a2a3d;
   color: white;
-  padding: 20px;
+  padding: 40px;
   border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  text-align: center;
+  height: 200px;
 `;
 
 const SectionTitle = styled.h2`
@@ -101,7 +101,6 @@ const AddButton = styled.button`
   font-size: 1rem;
   cursor: pointer;
   gap: 10px;
-  margin-bottom: 15px;
   width: fit-content;
 
   &:hover {
@@ -110,14 +109,17 @@ const AddButton = styled.button`
 `;
 
 const JournalContainer = styled.div`
-  background: #1e1e2e;
+  background: #2a2a3d;
   color: white;
   padding: 20px;
   border-radius: 10px;
+  width: 100%;
+  height: 500px;
+  overflow: hidden;
 `;
 
 const ChartContainer = styled.div`
-  background: #1e1e2e;
+  background: #2a2a3d;
   color: white;
   padding: 20px;
   border-radius: 10px;
@@ -125,6 +127,7 @@ const ChartContainer = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  height: 500px;
 `;
 
 interface JournalEntry {
@@ -138,10 +141,6 @@ interface JournalEntry {
 export default function Dashboard() {
   const router = useRouter();
   const { data, loading, error } = useQuery(GET_JOURNAL_ENTRIES);
-
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 3;
 
   if (loading) return <p>Loading dashboard...</p>;
   if (error) return <p>Error loading journals</p>;
@@ -196,14 +195,6 @@ export default function Dashboard() {
     ],
   };
 
-  // ** Pagination Logic **
-  const totalPages = Math.ceil(entries.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedEntries = entries.slice(
-    startIndex,
-    startIndex + ITEMS_PER_PAGE
-  );
-
   return (
     <DashboardContainer>
       <Sidebar />
@@ -229,71 +220,24 @@ export default function Dashboard() {
           {/* 📌 Paginated List of Journals (Bottom-Left) */}
           <JournalContainer>
             <SectionTitle>My Journals</SectionTitle>
-            {paginatedEntries.length > 0 ? (
-              paginatedEntries.map((entry: JournalEntry) => (
-                <div
-                  key={entry.id}
-                  style={{
-                    marginBottom: "15px",
-                    padding: "10px",
-                    background: "#2a2a3d",
-                    borderRadius: "5px",
-                  }}
-                >
-                  <h3>{entry.title}</h3>
-                  <p>{entry.content.substring(0, 50)}...</p>
-                  <small>{entry.category}</small>
-                </div>
-              ))
-            ) : (
-              <p>No journals found.</p>
-            )}
-
-            {/* Pagination Controls */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                gap: "10px",
-                marginTop: "15px",
-              }}
-            >
-              <button
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((prev) => prev - 1)}
-                style={{
-                  padding: "5px 10px",
-                  borderRadius: "5px",
-                  background: "#007bff",
-                  color: "white",
-                  cursor: "pointer",
-                }}
-              >
-                Previous
-              </button>
-              <span>
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((prev) => prev + 1)}
-                style={{
-                  padding: "5px 10px",
-                  borderRadius: "5px",
-                  background: "#007bff",
-                  color: "white",
-                  cursor: "pointer",
-                }}
-              >
-                Next
-              </button>
-            </div>
+            <JournalList journals={entries} />
           </JournalContainer>
 
           {/* 📌 Category Distribution Pie Chart (Bottom-Right) */}
           <ChartContainer>
             <SectionTitle>Category Distribution</SectionTitle>
-            <Pie data={categoryChartData} />
+            <Pie
+              data={categoryChartData}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: "bottom",
+                  },
+                },
+              }}
+            />
           </ChartContainer>
         </GridLayout>
       </ContentArea>

@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { gql, useMutation } from "@apollo/client";
-import styled from "styled-components";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import styled from "styled-components";
+import SuccessModal from "@/components/SuccessModal";
 
-// GraphQL Mutation to Create Journal Entry
 const CREATE_JOURNAL_ENTRY = gql`
   mutation CreateJournalEntry($data: CreateJournalInput!) {
     createJournalEntry(data: $data) {
@@ -17,82 +17,109 @@ const CREATE_JOURNAL_ENTRY = gql`
   }
 `;
 
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+// AI-powered auto-category suggestions
+const suggestCategory = (content: string): string => {
+  if (/finance|money|investment/i.test(content)) return "FINANCE";
+  if (/health|fitness|exercise/i.test(content)) return "HEALTH";
+  if (/work|job|career/i.test(content)) return "WORK";
+  if (/travel|vacation|trip/i.test(content)) return "TRAVEL";
+  if (/education|study|learning/i.test(content)) return "EDUCATION";
+  return "PERSONAL"; // Default fallback category
+};
+
+const Container = styled.div`
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
 `;
 
 const Input = styled.input`
+  width: 100%;
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 5px;
 `;
 
 const TextArea = styled.textarea`
+  width: 100%;
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 5px;
-  height: 150px;
+  height: 100px;
 `;
 
-const SubmitButton = styled.button`
+const Button = styled.button`
+  width: 100%;
+  padding: 10px;
   background: #007bff;
   color: white;
-  padding: 10px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-
+  margin-top: 10px;
   &:hover {
     background: #0056b3;
   }
 `;
 
-export default function CreateJournalPage() {
+export default function CreateJournal() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
   const router = useRouter();
 
-  const [createJournal] = useMutation(CREATE_JOURNAL_ENTRY, {
-    onCompleted: () => router.push("/dashboard"),
-  });
+  useEffect(() => {
+    if (content) {
+      setCategory(suggestCategory(content));
+    }
+  }, [content]);
+
+  const [createJournalEntry] = useMutation(CREATE_JOURNAL_ENTRY);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await createJournal({
-      variables: {
-        data: { title, content, category },
-      },
-    });
+    try {
+      await createJournalEntry({
+        variables: {
+          data: { title, content, category: category || "PERSONAL" },
+        },
+      });
+      setShowSuccess(true);
+    } catch (error) {
+      console.error("Failed to create journal", error);
+    }
   };
 
   return (
-    <div>
-      <h1>Create Journal Entry</h1>
-      <Form onSubmit={handleSubmit}>
+    <Container>
+      <h2>Create Journal Entry</h2>
+      <form onSubmit={handleSubmit}>
         <Input
           type="text"
-          placeholder="Title"
+          placeholder="Journal Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          required
         />
         <TextArea
-          placeholder="Write your journal..."
+          placeholder="Write your journal entry..."
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          required
         />
         <Input
           type="text"
-          placeholder="Category (e.g., PERSONAL, WORK)"
           value={category}
-          onChange={(e) => setCategory(e.target.value)}
+          readOnly
+          placeholder="Suggested Category (Auto-filled)"
         />
-        <SubmitButton type="submit">Save Journal</SubmitButton>
-      </Form>
-    </div>
+        <Button type="submit">Save Journal</Button>
+      </form>
+      {showSuccess && (
+        <SuccessModal
+          message="Journal Created Successfully!"
+          onClose={() => router.push("/dashboard")}
+        />
+      )}
+    </Container>
   );
 }

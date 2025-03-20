@@ -1,29 +1,52 @@
-import { useEffect } from "react";
-import styled from "styled-components";
-import { motion } from "framer-motion";
+import styled, { keyframes } from "styled-components";
 
-const ModalContainer = styled(motion.div)`
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+`;
+
+const ModalOverlay = styled.div`
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #2b2d42;
-  color: white;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+`;
+
+const ModalContent = styled.div`
+  background: #fff;
   padding: 20px;
   border-radius: 10px;
   text-align: center;
-  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
+  animation: ${fadeIn} 0.3s ease-in-out;
+  max-width: 400px;
+  width: 90%;
 `;
 
-const Button = styled.button`
-  margin-top: 10px;
-  padding: 8px 16px;
-  background: #ef233c;
+const CloseButton = styled.button`
+  background: #007bff;
   color: white;
   border: none;
+  padding: 10px 15px;
   border-radius: 5px;
   cursor: pointer;
+  margin-top: 10px;
+  font-size: 1rem;
+
+  &:hover {
+    background: #0056b3;
+  }
 `;
 
 export default function SuccessModal({
@@ -33,19 +56,12 @@ export default function SuccessModal({
   message: string;
   onClose: () => void;
 }) {
-  useEffect(() => {
-    const timer = setTimeout(() => onClose(), 2000);
-    return () => clearTimeout(timer);
-  }, [onClose]);
-
   return (
-    <ModalContainer
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.8 }}
-    >
-      <h3>✅ {message}</h3>
-      <Button onClick={onClose}>Close</Button>
-    </ModalContainer>
+    <ModalOverlay>
+      <ModalContent>
+        <h3>{message}</h3>
+        <CloseButton onClick={onClose}>OK</CloseButton>
+      </ModalContent>
+    </ModalOverlay>
   );
 }
