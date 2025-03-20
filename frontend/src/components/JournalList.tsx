@@ -11,33 +11,71 @@ interface JournalEntry {
   createdAt: string;
 }
 
-// Styled Component for Journal Items
-const JournalItem = styled.div`
+// Styled Components
+const JournalContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding-bottom: 15px; 
+`;
+
+const JournalCard = styled.div`
   background: #2a2a3d;
-  padding: 10px;
-  border-radius: 5px;
-  margin-bottom: 10px;
-  cursor: pointer;
+  padding: 15px;
+  border-radius: 10px;
   transition: background 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid #3a3a4a;
 
   &:hover {
     background: #444;
   }
 `;
 
+const JournalHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const JournalTitle = styled.h4`
+  color: #007bff;
+  font-size: 1.1rem;
+  margin: 0;
+`;
+
+const JournalContent = styled.p`
+  color: #ddd;
+  font-size: 0.9rem;
+  margin: 5px 0;
+`;
+
+const CategoryTag = styled.span`
+  background: ${(props) => (props.color ? props.color : "#777")};
+  color: white;
+  font-size: 0.8rem;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-weight: bold;
+`;
+
 const PaginationContainer = styled.div`
   display: flex;
   justify-content: center;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 20px; /* 
+  padding-bottom: 10px; 
 `;
 
 const PaginationButton = styled.button`
   background: #007bff;
   color: white;
   border: none;
-  padding: 8px 12px;
+  padding: 10px 15px;
   border-radius: 5px;
+  font-size: 1rem;
   cursor: pointer;
   transition: background 0.3s ease-in-out;
 
@@ -51,13 +89,22 @@ const PaginationButton = styled.button`
   }
 `;
 
+// Category Color Mapping
+const categoryColors: Record<string, string> = {
+  PERSONAL: "#ff6384",
+  WORK: "#36a2eb",
+  EDUCATION: "#ffce56",
+  TRAVEL: "#4caf50",
+  OTHER: "#9c27b0",
+};
+
 export default function JournalList({
   journals,
 }: {
   journals: JournalEntry[];
 }) {
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 3;
   const totalPages = Math.ceil(journals.length / itemsPerPage);
 
   // Get the current page's journals
@@ -67,14 +114,18 @@ export default function JournalList({
   );
 
   return (
-    <div>
+    <JournalContainer>
       {displayedJournals.map((journal: JournalEntry) => (
         <Link key={journal.id} href={`/dashboard/edit/${journal.id}`}>
-          <JournalItem>
-            <h4>{journal.title}</h4>
-            <p>{journal.content.substring(0, 50)}...</p>
-            <small>📌 {journal.category}</small>
-          </JournalItem>
+          <JournalCard>
+            <JournalHeader>
+              <JournalTitle>{journal.title}</JournalTitle>
+              <CategoryTag color={categoryColors[journal.category] || "#777"}>
+                {journal.category}
+              </CategoryTag>
+            </JournalHeader>
+            <JournalContent>{journal.content.substring(0, 100)}...</JournalContent>
+          </JournalCard>
         </Link>
       ))}
 
@@ -98,6 +149,6 @@ export default function JournalList({
           </PaginationButton>
         </PaginationContainer>
       )}
-    </div>
+    </JournalContainer>
   );
 }

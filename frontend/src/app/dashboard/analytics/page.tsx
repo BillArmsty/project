@@ -16,7 +16,11 @@ import {
   LinearScale,
   BarElement,
   LineElement,
+  PointElement, // ✅ FIX: Register missing PointElement for Line charts
+  TimeScale,
+  ChartOptions,
 } from "chart.js";
+import "chartjs-adapter-date-fns"; // ✅ Ensures correct time scale parsing
 import { FaHome } from "react-icons/fa";
 
 ChartJS.register(
@@ -26,7 +30,9 @@ ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
-  LineElement
+  LineElement,
+  PointElement,
+  TimeScale // ✅ Ensures proper date/time handling
 );
 
 // 🔹 GraphQL Query for Fetching Journal Entries
@@ -42,7 +48,7 @@ const GET_JOURNAL_ENTRIES = gql`
   }
 `;
 
-// 🔹 Styled Components for Layout
+// 🔹 Styled Components
 const AnalyticsContainer = styled.div`
   display: flex;
   height: 100vh;
@@ -51,9 +57,11 @@ const AnalyticsContainer = styled.div`
 const ContentArea = styled.div`
   flex: 1;
   padding: 20px;
-  overflow-y: auto;
   background: #1e1e2e;
   color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 `;
 
 const TopBar = styled.div`
@@ -63,6 +71,7 @@ const TopBar = styled.div`
   padding: 15px;
   background: #0f172a;
   border-radius: 8px;
+  width: 100%;
 `;
 
 const HomeButton = styled.button`
@@ -87,7 +96,6 @@ const Container = styled.div`
 `;
 
 const AnalyticsTitle = styled.h2`
-  // 🔹 Renamed to avoid conflict
   text-align: center;
   margin-bottom: 20px;
 `;
@@ -98,7 +106,22 @@ const Grid = styled.div`
   gap: 20px;
 `;
 
-// 🔹 Type Definitions for Data Structure
+const ChartContainer = styled.div`
+  background: #2a2a3d;
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+`;
+
+// 🔹 Type Definitions
 interface JournalEntry {
   id: string;
   title: string;
@@ -118,8 +141,8 @@ export default function Analytics() {
 
   // 1️⃣ 📅 Calendar Heatmap Data
   const heatmapData = entries.map((entry: JournalEntry) => ({
-    date: entry.createdAt.split("T")[0], // Extract YYYY-MM-DD
-    count: 1, // One entry per day
+    date: entry.createdAt.split("T")[0],
+    count: 1,
   }));
 
   // 2️⃣ 📊 Category Distribution (Pie Chart)
@@ -160,17 +183,59 @@ export default function Analytics() {
   );
 
   const wordCountChartData = {
-    labels: Object.keys(wordCountsByDate),
+    labels: Object.keys(wordCountsByDate).reverse(), // ✅ Inverted X-axis
     datasets: [
       {
         label: "Word Count",
         data: Object.values(wordCountsByDate),
         borderColor: "#36A2EB",
         backgroundColor: "rgba(54, 162, 235, 0.5)",
+        pointRadius: 4,
       },
     ],
   };
 
+  const wordCountChartOptions: ChartOptions<"line"> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "top",
+      },
+    },
+    layout: {
+      padding: 10,
+    },
+    scales: {
+      x: {
+        type: "time",
+        time: {
+          unit: "day",
+          tooltipFormat: "MMM dd",
+        },
+        reverse: true,
+        title: {
+          display: true,
+          text: "Date",
+          color: "#ffffff",
+        },
+        ticks: {
+          maxRotation: 0,
+          minRotation: 0,
+          autoSkip: true,
+          maxTicksLimit: 6,
+        },
+      },
+      y: {
+        type: "linear",
+        title: {
+          display: true,
+          text: "Word Count",
+          color: "#ffffff",
+        },
+      },
+    },
+  };
   return (
     <AnalyticsContainer>
       <Sidebar />
@@ -200,16 +265,21 @@ export default function Analytics() {
 
           <Grid>
             {/* 📊 Category Distribution */}
-            <div>
+            <ChartContainer>
               <h3>📌 Category Distribution</h3>
               <Pie data={categoryChartData} />
-            </div>
+            </ChartContainer>
 
             {/* 📈 Word Count Trends */}
-            <div>
+            <ChartContainer>
               <h3>📈 Word Count Over Time</h3>
-              <Line data={wordCountChartData} />
-            </div>
+              <div style={{ width: "90%", height: "85%" }}>
+                <Line
+                  data={wordCountChartData}
+                  options={wordCountChartOptions}
+                />
+              </div>
+            </ChartContainer>
           </Grid>
         </Container>
       </ContentArea>

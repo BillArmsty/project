@@ -1,18 +1,12 @@
 "use client";
 
-import { gql, useMutation, useQuery } from "@apollo/client";
 import { useEffect, useState } from "react";
-// import { useRouter } from "next/navigation";
+import { gql, useQuery, useMutation } from "@apollo/client";
+import { useParams, useRouter } from "next/navigation";
 import styled from "styled-components";
-import SuccessModal from "@/components/SuccessModal"; 
-import OpenAI from "openai"; 
+import SuccessModal from "@/components/SuccessModal";
 
-const openai = new OpenAI({
-  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY, 
-  dangerouslyAllowBrowser: true,
-});
-
-// 📌 GraphQL Queries & Mutations
+// ✅ GraphQL Query to Fetch a Single Journal
 const GET_JOURNAL_ENTRY = gql`
   query GetJournalEntry($id: String!) {
     getJournalEntry(id: $id) {
@@ -24,6 +18,7 @@ const GET_JOURNAL_ENTRY = gql`
   }
 `;
 
+// ✅ GraphQL Mutation to Update Journal Entry
 const UPDATE_JOURNAL_ENTRY = gql`
   mutation UpdateJournalEntry($data: UpdateJournalInput!) {
     updateJournalEntry(data: $data) {
@@ -35,215 +30,199 @@ const UPDATE_JOURNAL_ENTRY = gql`
   }
 `;
 
-// 📌 Category Options
-const categories = [
-  "PERSONAL",
-  "WORK",
-  "TRAVEL",
-  "HEALTH",
-  "FINANCE",
-  "EDUCATION",
-  "OTHER",
-];
+// **Category Options**
+const CATEGORIES = ["PERSONAL", "WORK", "EDUCATION", "TRAVEL", "OTHER"];
 
-// 📌 Styled Components
+// ✅ Styled Components
 const Container = styled.div`
   max-width: 600px;
   margin: auto;
   padding: 20px;
   background: #1e1e2e;
-  border-radius: 10px;
   color: white;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-`;
-
-const Title = styled.h2`
-  text-align: center;
-  margin-bottom: 20px;
-`;
-
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  border-radius: 8px;
 `;
 
 const Input = styled.input`
+  width: 100%;
   padding: 10px;
+  margin-bottom: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
-  font-size: 1rem;
-  background: #2a2a3d;
-  color: white;
 `;
 
 const TextArea = styled.textarea`
+  width: 100%;
+  height: 150px;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
-  font-size: 1rem;
-  height: 100px;
-  background: #2a2a3d;
-  color: white;
 `;
 
-const Select = styled.select`
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 1rem;
-  background: #2a2a3d;
-  color: white;
+const CategoryContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
 `;
 
-const Button = styled.button`
-  padding: 10px;
-  background: #007bff;
-  color: white;
+const CategoryBubble = styled.button<{ selected: boolean }>`
+  padding: 8px 15px;
+  border-radius: 20px;
   border: none;
-  border-radius: 5px;
   cursor: pointer;
-  font-size: 1rem;
+  background: ${({ selected }) => (selected ? "#007bff" : "#444")};
+  color: white;
+  transition: 0.3s;
   &:hover {
     background: #0056b3;
   }
 `;
 
-const AutoSuggestMessage = styled.p`
-  font-size: 0.9rem;
-  color: #ff9800;
-  margin-top: 5px;
-  text-align: right;
+const SaveButton = styled.button`
+  width: 100%;
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+
+  &:hover {
+    background: #0056b3;
+  }
 `;
 
-export default function EditJournal({ params }: { params: { id: string } }) {
-  const [showSuccess, setShowSuccess] = useState(false);
-  // const router = useRouter();
-
-  // 📌 Fetch Journal Entry
-  const { data, loading, error } = useQuery(GET_JOURNAL_ENTRY, {
-    variables: { id: params.id },
-  });
-
-  // 📌 Mutation to Update Journal
-  const [updateJournalEntry] = useMutation(UPDATE_JOURNAL_ENTRY);
-
-  // 📌 State for Form
+export default function EditJournal() {
+  const params = useParams();
+  const router = useRouter();
+  const [journalId, setJournalId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [category, setCategory] = useState("PERSONAL");
-  const [suggestedCategory, setSuggestedCategory] = useState("");
+  const [category, setCategory] = useState<string>("OTHER");
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  // 📌 Populate State When Data is Available
+  useEffect(() => {
+    if (params?.id) {
+      setJournalId(params.id as string);
+    }
+  }, [params]);
+
+  const { data, loading, error } = useQuery(GET_JOURNAL_ENTRY, {
+    variables: { id: journalId },
+    skip: !journalId,
+  });
+
   useEffect(() => {
     if (data?.getJournalEntry) {
       setTitle(data.getJournalEntry.title);
       setContent(data.getJournalEntry.content);
       setCategory(data.getJournalEntry.category);
+
+      const lowerCaseContent = data.getJournalEntry.content.toLowerCase();
+      if (lowerCaseContent.includes("work")) setCategory("WORK");
+      else if (
+        lowerCaseContent.includes("school") ||
+        lowerCaseContent.includes("study")
+      )
+        setCategory("EDUCATION");
+      else if (
+        lowerCaseContent.includes("travel") ||
+        lowerCaseContent.includes("trip")
+      )
+        setCategory("TRAVEL");
+      else if (
+        lowerCaseContent.includes("personal") ||
+        lowerCaseContent.includes("diary")
+      )
+        setCategory("PERSONAL");
+      else setCategory("OTHER");
     }
   }, [data]);
 
-  // 📌 Auto-Suggest Category using OpenAI GPT
-  const autoSuggestCategory = async (text: string) => {
-    if (text.length < 10) return; 
+  // ✅ Mutation to update journal
+  const [updateJournalEntry] = useMutation(UPDATE_JOURNAL_ENTRY);
 
-    try {
-      const response = await openai.completions.create({
-        model: "gpt-4",
-        prompt: `Analyze this journal entry and suggest a category from these options: ${categories.join(
-          ", "
-        )}.\n\nEntry: "${text}"\n\nCategory:`,
-        max_tokens: 10,
-      });
-
-      const suggested = response.choices[0]?.text.trim().toUpperCase();
-      if (categories.includes(suggested)) {
-        setSuggestedCategory(suggested);
-      } else {
-        setSuggestedCategory(""); // Reset if invalid
-      }
-    } catch (error) {
-      console.error("Auto-suggest failed:", error);
-    }
-  };
-
-  // 📌 Handle Content Change & Auto-Suggest
-  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const text = e.target.value;
-    setContent(text);
-    autoSuggestCategory(text);
-  };
-
-  // 📌 Handle Form Submission
-  const handleUpdate = async (e: React.FormEvent) => {
+  // ✅ Handle Update
+  const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!journalId) return;
 
     try {
       await updateJournalEntry({
         variables: {
           data: {
-            id: params.id,
+            id: journalId,
             title,
             content,
-            category: suggestedCategory || category, 
+            category,
           },
         },
       });
 
-      setShowSuccess(true); // ✅ Show success modal
+      // ✅ Show success modal & auto-close after 3s
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        router.push("/dashboard");
+      }, 3000);
     } catch (err) {
-      console.error("Update failed", err);
-      alert("Error updating journal");
+      console.error("Update failed:", err);
     }
   };
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error fetching journal</p>;
+  // ✅ Error Handling
+  if (!journalId) return <p>Invalid journal ID.</p>;
+  if (loading) return <p>Loading journal...</p>;
+  if (error) {
+    console.error("GraphQL Error:", error);
+    return <p>Error loading journal.</p>;
+  }
 
   return (
-    <>
+    <Container>
       {/* ✅ Success Modal */}
       {showSuccess && (
         <SuccessModal
-          message="Journal updated successfully!"
+          message="Journal Updated Successfully!"
           onClose={() => setShowSuccess(false)}
         />
       )}
 
-      <Container>
-        <Title>📝 Edit Journal</Title>
-        <Form onSubmit={handleUpdate}>
-          {/* 📌 Title Input */}
-          <label>Title:</label>
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+      <h2>Edit Journal Entry</h2>
+      <form onSubmit={handleUpdate}>
+        <Input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Title"
+          required
+        />
+        <TextArea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Write your journal..."
+          required
+        />
 
-          {/* 📌 Content Input (Triggers Auto-Suggest) */}
-          <label>Content:</label>
-          <TextArea value={content} onChange={handleContentChange} />
+        {/* 📌 Category Selection */}
+        <h4>Category</h4>
+        <CategoryContainer>
+          {CATEGORIES.map((cat) => (
+            <CategoryBubble
+              key={cat}
+              selected={cat === category}
+              onClick={() => setCategory(cat)}
+              type="button"
+            >
+              {cat}
+            </CategoryBubble>
+          ))}
+        </CategoryContainer>
 
-          {/* 📌 Category Select (Auto-Suggested if Available) */}
-          <label>Category:</label>
-          <Select
-            value={suggestedCategory || category}
-            onChange={(e) => setCategory(e.target.value)}
-          >
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </Select>
-
-          {suggestedCategory && (
-            <AutoSuggestMessage>
-              🔍 Suggested Category: {suggestedCategory}
-            </AutoSuggestMessage>
-          )}
-
-          {/* 📌 Submit Button */}
-          <Button type="submit">Save Changes</Button>
-        </Form>
-      </Container>
-    </>
+        <SaveButton type="submit">Save Changes</SaveButton>
+      </form>
+    </Container>
   );
 }

@@ -30,7 +30,7 @@ ChartJS.register(
   PointElement
 );
 
-// GraphQL Query to Get Journals
+// ✅ GraphQL Query to Get Journals
 const GET_JOURNAL_ENTRIES = gql`
   query GetJournalEntries {
     getJournalEntries {
@@ -42,6 +42,14 @@ const GET_JOURNAL_ENTRIES = gql`
     }
   }
 `;
+
+interface JournalEntry {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  createdAt: string;
+}
 
 // **Styled Components**
 const DashboardContainer = styled.div`
@@ -77,18 +85,34 @@ const GridLayout = styled.div`
 const SummaryBox = styled.div`
   background: #2a2a3d;
   color: white;
-  padding: 40px;
+  padding: 50px;
   border-radius: 10px;
   text-align: center;
-  height: 200px;
+  height: 340px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 `;
 
-const SectionTitle = styled.h2`
+const TotalEntries = styled.h2`
+  font-size: 10rem; 
+  font-weight: bold;
+  margin-top: 10px;
+`;
+
+const ChartContainer = styled.div`
+  background: #2a2a3d;
   color: white;
-  margin-bottom: 15px;
-  text-align: center;
+  padding: 20px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 414px;
 `;
 
+// ✅ Styled Component for Add Button (Fixes Missing Definition)
 const AddButton = styled.button`
   display: flex;
   align-items: center;
@@ -108,36 +132,18 @@ const AddButton = styled.button`
   }
 `;
 
+// ✅ Styled Component for Journal Container
 const JournalContainer = styled.div`
   background: #2a2a3d;
   color: white;
   padding: 20px;
   border-radius: 10px;
   width: 100%;
-  height: 500px;
-  overflow: hidden;
+  height: 430px;
+  overflow-y: auto;
 `;
 
-const ChartContainer = styled.div`
-  background: #2a2a3d;
-  color: white;
-  padding: 20px;
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 500px;
-`;
-
-interface JournalEntry {
-  id: string;
-  title: string;
-  content: string;
-  category: string;
-  createdAt: string;
-}
-
+// ✅ Chart Data Processing
 export default function Dashboard() {
   const router = useRouter();
   const { data, loading, error } = useQuery(GET_JOURNAL_ENTRIES);
@@ -184,7 +190,7 @@ export default function Dashboard() {
   );
 
   const wordCountChartData = {
-    labels: Object.keys(wordCountsByDate),
+    labels: Object.keys(wordCountsByDate).reverse(), 
     datasets: [
       {
         label: "Word Count",
@@ -195,52 +201,81 @@ export default function Dashboard() {
     ],
   };
 
+  const wordCountChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "top" as const,
+      },
+    },
+    scales: {
+      x: {
+        reverse: true, 
+        title: {
+          display: true,
+          text: "Date",
+          color: "#ffffff",
+        },
+      },
+      y: {
+        title: {
+          display: true,
+          text: "Word Count",
+          color: "#ffffff",
+        },
+      },
+    },
+  };
+
   return (
     <DashboardContainer>
       <Sidebar />
       <ContentArea>
-        {/* Add Journal Button */}
+        {/* ✅ Add Journal Button */}
         <AddButton onClick={() => router.push("/dashboard/create")}>
           <FaPlus /> Add Journal
         </AddButton>
 
         <GridLayout>
-          {/* 📌 Total Entries (Top-Left) */}
+          {/* 📌 Total Entries */}
           <SummaryBox>
-            <SectionTitle>Total Entries</SectionTitle>
-            <h2>{entries.length}</h2>
+            <h2>Total Entries</h2>
+            <TotalEntries>{entries.length}</TotalEntries> {}
           </SummaryBox>
 
-          {/* 📌 Word Count Trends (Top-Right) */}
-          <SummaryBox>
-            <SectionTitle>Word Count Over Time</SectionTitle>
-            <Line data={wordCountChartData} />
-          </SummaryBox>
+          {/* 📌 Word Count Trends */}
+          <ChartContainer>
+            <h2>Word Count Over Time</h2>
+            <div style={{ width: "80%", height: "80%" }}>
+              {" "}
+              {}
+              <Line data={wordCountChartData} options={wordCountChartOptions} />
+            </div>
+          </ChartContainer>
 
-          {/* 📌 Paginated List of Journals (Bottom-Left) */}
+          {/* 📌 List of Journals */}
           <JournalContainer>
-            <SectionTitle>My Journals</SectionTitle>
+            <h2>My Journals</h2>
             <JournalList journals={entries} />
           </JournalContainer>
 
-          {/* 📌 Category Distribution Pie Chart (Bottom-Right) */}
+          {/* 📌 Category Distribution Pie Chart */}
           <ChartContainer>
-            <SectionTitle>Category Distribution</SectionTitle>
-            <Pie
-              data={categoryChartData}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    position: "bottom",
-                  },
-                },
-              }}
-            />
+            <h2>Category Distribution</h2>
+            <Pie data={categoryChartData} />
           </ChartContainer>
         </GridLayout>
       </ContentArea>
     </DashboardContainer>
   );
 }
+
+
+
+
+
+
+
+
+
