@@ -17,7 +17,6 @@ const CREATE_JOURNAL_ENTRY = gql`
   }
 `;
 
-// AI-powered auto-category suggestions
 const suggestCategory = (content: string): string => {
   if (/finance|money|investment/i.test(content)) return "FINANCE";
   if (/health|fitness|exercise/i.test(content)) return "HEALTH";

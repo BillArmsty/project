@@ -16,11 +16,11 @@ import {
   LinearScale,
   BarElement,
   LineElement,
-  PointElement, // ✅ FIX: Register missing PointElement for Line charts
+  PointElement, 
   TimeScale,
   ChartOptions,
 } from "chart.js";
-import "chartjs-adapter-date-fns"; // ✅ Ensures correct time scale parsing
+import "chartjs-adapter-date-fns"; 
 import { FaHome } from "react-icons/fa";
 
 ChartJS.register(
@@ -32,7 +32,7 @@ ChartJS.register(
   BarElement,
   LineElement,
   PointElement,
-  TimeScale // ✅ Ensures proper date/time handling
+  TimeScale 
 );
 
 // 🔹 GraphQL Query for Fetching Journal Entries
@@ -183,7 +183,7 @@ export default function Analytics() {
   );
 
   const wordCountChartData = {
-    labels: Object.keys(wordCountsByDate).reverse(), // ✅ Inverted X-axis
+    labels: Object.keys(wordCountsByDate).reverse(),
     datasets: [
       {
         label: "Word Count",

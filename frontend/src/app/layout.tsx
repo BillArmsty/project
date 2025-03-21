@@ -1,13 +1,18 @@
-"use client";
+import { Inter } from "next/font/google";
+import "../styles/globals.css";
+import ClientLayout from "./client-layout";
 
-import ApolloWrapper from "../lib/apollo-wrapper";
-import { ReactNode } from "react";
+const inter = Inter({ subsets: ["latin"] });
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
-        <ApolloWrapper>{children}</ApolloWrapper>
+      <body className={inter.className}>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );
