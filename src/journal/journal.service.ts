@@ -231,6 +231,10 @@ export class JournalService {
    */
   async remove(id: string, userId: string): Promise<boolean> {
     const entry = await this.findOne(id, userId);
+
+    if (!entry) {
+      throw new NotFoundException('Journal entry not found');
+    }
     await this.prismaService.journalEntry.delete({ where: { id: entry.id } });
     return true;
   }
