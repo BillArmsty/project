@@ -18,6 +18,7 @@ import {
   PointElement,
 } from "chart.js";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 ChartJS.register(
   ArcElement,
@@ -30,7 +31,6 @@ ChartJS.register(
   PointElement
 );
 
-// ✅ GraphQL Query to Get Journals
 const GET_JOURNAL_ENTRIES = gql`
   query GetJournalEntries {
     getJournalEntries {
@@ -51,7 +51,7 @@ interface JournalEntry {
   createdAt: string;
 }
 
-// **Styled Components**
+// Styling
 const DashboardContainer = styled.div`
   display: flex;
   height: 100vh;
@@ -71,11 +71,9 @@ const ContentArea = styled.div`
 const GridLayout = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: auto auto;
   gap: 20px;
   width: 100%;
   max-width: 1200px;
-  align-items: start;
 
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
@@ -95,9 +93,8 @@ const SummaryBox = styled.div`
 `;
 
 const TotalEntries = styled.h2`
-  font-size: 10rem; 
+  font-size: 10rem;
   font-weight: bold;
-  margin-top: 10px;
 `;
 
 const ChartContainer = styled.div`
@@ -105,34 +102,30 @@ const ChartContainer = styled.div`
   color: white;
   padding: 20px;
   border-radius: 10px;
+  height: 414px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 414px;
 `;
 
-// ✅ Styled Component for Add Button (Fixes Missing Definition)
 const AddButton = styled.button`
   display: flex;
   align-items: center;
-  justify-content: center;
   background: #007bff;
   color: white;
   border: none;
   border-radius: 5px;
   padding: 10px 15px;
   font-size: 1rem;
-  cursor: pointer;
   gap: 10px;
-  width: fit-content;
+  cursor: pointer;
 
   &:hover {
     background: #0056b3;
   }
 `;
 
-// ✅ Styled Component for Journal Container
 const JournalContainer = styled.div`
   background: #2a2a3d;
   color: white;
@@ -143,17 +136,46 @@ const JournalContainer = styled.div`
   overflow-y: auto;
 `;
 
-// ✅ Chart Data Processing
+// Loader Overlay
+const LoaderOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+`;
+
+const Spinner = styled.div`
+  width: 50px;
+  height: 50px;
+  border: 5px solid #007bff;
+  border-top: 5px solid transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+`;
+
 export default function Dashboard() {
   const router = useRouter();
   const { data, loading, error } = useQuery(GET_JOURNAL_ENTRIES);
+  const [isRefreshing] = useState(false);
 
   if (loading) return <p>Loading dashboard...</p>;
   if (error) return <p>Error loading journals</p>;
 
   const entries = data?.getJournalEntries || [];
 
-  // 📊 Category Distribution (Pie Chart)
   const categoryCounts = entries.reduce(
     (acc: Record<string, number>, entry: JournalEntry) => {
       acc[entry.category] = (acc[entry.category] || 0) + 1;
@@ -179,7 +201,6 @@ export default function Dashboard() {
     ],
   };
 
-  // 📈 Word Count Trends
   const wordCountsByDate = entries.reduce(
     (acc: Record<string, number>, entry: JournalEntry) => {
       const date = entry.createdAt.split("T")[0];
@@ -190,7 +211,7 @@ export default function Dashboard() {
   );
 
   const wordCountChartData = {
-    labels: Object.keys(wordCountsByDate).reverse(), 
+    labels: Object.keys(wordCountsByDate).reverse(),
     datasets: [
       {
         label: "Word Count",
@@ -205,77 +226,60 @@ export default function Dashboard() {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        position: "top" as const,
-      },
+      legend: { position: "top" as const },
     },
     scales: {
-      x: {
-        reverse: true, 
-        title: {
-          display: true,
-          text: "Date",
-          color: "#ffffff",
-        },
-      },
-      y: {
-        title: {
-          display: true,
-          text: "Word Count",
-          color: "#ffffff",
-        },
-      },
+      x: { title: { display: true, text: "Date", color: "#fff" } },
+      y: { title: { display: true, text: "Word Count", color: "#fff" } },
     },
   };
+
+  
+  
 
   return (
     <DashboardContainer>
       <Sidebar />
       <ContentArea>
-        {/* ✅ Add Journal Button */}
         <AddButton onClick={() => router.push("/dashboard/create")}>
           <FaPlus /> Add Journal
         </AddButton>
 
         <GridLayout>
-          {/* 📌 Total Entries */}
           <SummaryBox>
             <h2>Total Entries</h2>
-            <TotalEntries>{entries.length}</TotalEntries> {}
+            <TotalEntries>{entries.length}</TotalEntries>
           </SummaryBox>
 
-          {/* 📌 Word Count Trends */}
           <ChartContainer>
             <h2>Word Count Over Time</h2>
             <div style={{ width: "80%", height: "80%" }}>
-              {" "}
-              {}
               <Line data={wordCountChartData} options={wordCountChartOptions} />
             </div>
           </ChartContainer>
 
-          {/* 📌 List of Journals */}
           <JournalContainer>
             <h2>My Journals</h2>
-            <JournalList journals={entries} />
+            <JournalList
+              journals={entries}
+              onDelete={()=> {
+                router.refresh()
+              }}
+            />{" "}
           </JournalContainer>
 
-          {/* 📌 Category Distribution Pie Chart */}
           <ChartContainer>
             <h2>Category Distribution</h2>
             <Pie data={categoryChartData} />
           </ChartContainer>
         </GridLayout>
       </ContentArea>
+
+      {isRefreshing && (
+        <LoaderOverlay>
+          <Spinner />
+        </LoaderOverlay>
+      )}
     </DashboardContainer>
   );
 }
-
-
-
-
-
-
-
-
-

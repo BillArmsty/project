@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import { useParams, useRouter } from "next/navigation";
-import styled from "styled-components";
-import SuccessModal from "@/components/SuccessModal";
+import styled, { createGlobalStyle } from "styled-components";
 
-// ✅ GraphQL Query to Fetch a Single Journal
+// ✅ GraphQL
 const GET_JOURNAL_ENTRY = gql`
   query GetJournalEntry($id: String!) {
     getJournalEntry(id: $id) {
@@ -18,7 +17,6 @@ const GET_JOURNAL_ENTRY = gql`
   }
 `;
 
-// ✅ GraphQL Mutation to Update Journal Entry
 const UPDATE_JOURNAL_ENTRY = gql`
   mutation UpdateJournalEntry($data: UpdateJournalInput!) {
     updateJournalEntry(data: $data) {
@@ -30,199 +28,225 @@ const UPDATE_JOURNAL_ENTRY = gql`
   }
 `;
 
-// **Category Options**
+// ✅ Categories
 const CATEGORIES = ["PERSONAL", "WORK", "EDUCATION", "TRAVEL", "OTHER"];
 
 // ✅ Styled Components
-const Container = styled.div`
-  max-width: 600px;
-  margin: auto;
-  padding: 20px;
-  background: #1e1e2e;
-  color: white;
-  border-radius: 8px;
+const FormContainer = styled.div`
+  max-width: 720px;
+  margin: 280px auto;
+  padding: 30px;
+  background: #2a2a3d;
+  border-radius: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 `;
 
 const Input = styled.input`
   width: 100%;
   padding: 10px;
   margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background: #1e1e2e;
+  color: white;
 `;
 
 const TextArea = styled.textarea`
   width: 100%;
-  height: 150px;
   padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background: #1e1e2e;
+  color: white;
+  min-height: 120px;
 `;
 
 const CategoryContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 8px;
+  margin-bottom: 15px;
 `;
 
 const CategoryBubble = styled.button<{ selected: boolean }>`
-  padding: 8px 15px;
+  padding: 6px 12px;
   border-radius: 20px;
   border: none;
   cursor: pointer;
-  background: ${({ selected }) => (selected ? "#007bff" : "#444")};
+  background: ${({ selected }) => (selected ? "#3b82f6" : "#444")};
   color: white;
-  transition: 0.3s;
+  font-size: 0.85rem;
   &:hover {
-    background: #0056b3;
+    background: #2563eb;
   }
 `;
 
 const SaveButton = styled.button`
   width: 100%;
-  background: #007bff;
+  padding: 12px;
+  border-radius: 6px;
+  background: #3b82f6;
   color: white;
-  border: none;
-  padding: 10px;
-  font-size: 1rem;
+  font-weight: bold;
   cursor: pointer;
-  border-radius: 5px;
-
   &:hover {
-    background: #0056b3;
+    background: #2563eb;
+  }
+`;
+
+// ✅ Modal Overlay & Popup
+const GlobalStyle = createGlobalStyle`
+  body.modal-open {
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+    background-color: rgba(0, 0, 0, 0.6);
+  }
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const ModalBox = styled.div`
+  background: #1e1e2e;
+  padding: 30px;
+  max-width: 90%;
+  border-radius: 10px;
+  width: 400px;
+  text-align: center;
+  color: white;
+`;
+
+const ModalTitle = styled.h3`
+  margin-bottom: 15px;
+`;
+
+const CloseButton = styled.button`
+  background: #3b82f6;
+  color: white;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  &:hover {
+    background: #2563eb;
   }
 `;
 
 export default function EditJournal() {
   const params = useParams();
   const router = useRouter();
-  const [journalId, setJournalId] = useState<string | null>(null);
+
+  const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [category, setCategory] = useState<string>("OTHER");
-  const [showSuccess, setShowSuccess] = useState(false);
-
-  useEffect(() => {
-    if (params?.id) {
-      setJournalId(params.id as string);
-    }
-  }, [params]);
+  const [category, setCategory] = useState("OTHER");
+  const [showModal, setShowModal] = useState(false);
 
   const { data, loading, error } = useQuery(GET_JOURNAL_ENTRY, {
-    variables: { id: journalId },
-    skip: !journalId,
+    variables: { id },
+    skip: !id,
   });
 
   useEffect(() => {
     if (data?.getJournalEntry) {
-      setTitle(data.getJournalEntry.title);
-      setContent(data.getJournalEntry.content);
-      setCategory(data.getJournalEntry.category);
-
-      const lowerCaseContent = data.getJournalEntry.content.toLowerCase();
-      if (lowerCaseContent.includes("work")) setCategory("WORK");
-      else if (
-        lowerCaseContent.includes("school") ||
-        lowerCaseContent.includes("study")
-      )
-        setCategory("EDUCATION");
-      else if (
-        lowerCaseContent.includes("travel") ||
-        lowerCaseContent.includes("trip")
-      )
-        setCategory("TRAVEL");
-      else if (
-        lowerCaseContent.includes("personal") ||
-        lowerCaseContent.includes("diary")
-      )
-        setCategory("PERSONAL");
-      else setCategory("OTHER");
+      const entry = data.getJournalEntry;
+      setTitle(entry.title);
+      setContent(entry.content);
+      setCategory(entry.category);
     }
   }, [data]);
 
-  // ✅ Mutation to update journal
+  useEffect(() => {
+    if (showModal) {
+      document.body.classList.add("modal-open");
+    } else {
+      document.body.classList.remove("modal-open");
+    }
+  }, [showModal]);
+
   const [updateJournalEntry] = useMutation(UPDATE_JOURNAL_ENTRY);
 
-  // ✅ Handle Update
-  const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!journalId) return;
+    if (!id) return;
 
     try {
       await updateJournalEntry({
         variables: {
-          data: {
-            id: journalId,
-            title,
-            content,
-            category,
-          },
+          data: { id, title, content, category },
         },
       });
 
-      // ✅ Show success modal & auto-close after 3s
-      setShowSuccess(true);
-      setTimeout(() => {
-        setShowSuccess(false);
-        router.push("/dashboard");
-      }, 3000);
+      setShowModal(true);
     } catch (err) {
       console.error("Update failed:", err);
     }
   };
 
-  // ✅ Error Handling
-  if (!journalId) return <p>Invalid journal ID.</p>;
+  const handleCloseModal = () => {
+    setShowModal(false);
+    router.push("/dashboard");
+  };
+
   if (loading) return <p>Loading journal...</p>;
-  if (error) {
-    console.error("GraphQL Error:", error);
-    return <p>Error loading journal.</p>;
-  }
+  if (error) return <p>Error loading journal entry.</p>;
 
   return (
-    <Container>
-      {/* ✅ Success Modal */}
-      {showSuccess && (
-        <SuccessModal
-          message="Journal Updated Successfully!"
-          onClose={() => setShowSuccess(false)}
-        />
+    <>
+      <GlobalStyle />
+      <FormContainer>
+        <h2>Edit Journal Entry</h2>
+        <form onSubmit={handleSubmit}>
+          <Input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Journal Title"
+            required
+          />
+          <TextArea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Write your journal entry..."
+            required
+          />
+          <h4>Category</h4>
+          <CategoryContainer>
+            {CATEGORIES.map((cat) => (
+              <CategoryBubble
+                key={cat}
+                selected={cat === category}
+                onClick={() => setCategory(cat)}
+                type="button"
+              >
+                {cat}
+              </CategoryBubble>
+            ))}
+          </CategoryContainer>
+
+          <SaveButton type="submit">Save Changes</SaveButton>
+        </form>
+      </FormContainer>
+
+      {/* ✅ Modal */}
+      {showModal && (
+        <ModalOverlay>
+          <ModalBox>
+            <ModalTitle>✅ Journal Updated Successfully!</ModalTitle>
+            <CloseButton onClick={handleCloseModal}>
+              Go to Dashboard
+            </CloseButton>
+          </ModalBox>
+        </ModalOverlay>
       )}
-
-      <h2>Edit Journal Entry</h2>
-      <form onSubmit={handleUpdate}>
-        <Input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Title"
-          required
-        />
-        <TextArea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Write your journal..."
-          required
-        />
-
-        {/* 📌 Category Selection */}
-        <h4>Category</h4>
-        <CategoryContainer>
-          {CATEGORIES.map((cat) => (
-            <CategoryBubble
-              key={cat}
-              selected={cat === category}
-              onClick={() => setCategory(cat)}
-              type="button"
-            >
-              {cat}
-            </CategoryBubble>
-          ))}
-        </CategoryContainer>
-
-        <SaveButton type="submit">Save Changes</SaveButton>
-      </form>
-    </Container>
+    </>
   );
 }
