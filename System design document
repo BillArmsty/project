@@ -1,0 +1,153 @@
+# 🧠 Personal Journaling App — Implementation Plan
+
+## 🔧 Technology Stack
+
+### ✅ Backend (API & AI Layer)
+- **Framework**: NestJS  
+  _Modular and scalable architecture for building efficient GraphQL APIs._
+- **Language**: TypeScript  
+  _Provides type safety and better DX._
+- **ORM**: Prisma  
+  _Elegant and auto-typed data access layer for PostgreSQL._
+- **Database**: PostgreSQL  
+  _Reliable, relational database suited for journaling history._
+- **Authentication**: JWT-based auth  
+  _Implemented via `@nestjs/passport` and `bcrypt` for secure login._
+- **AI Integration**: Hugging Face Inference API  
+  _Using free models like Mistral 7B and Falcon for text generation, with fallback._
+
+### ✅ Frontend (User Interface Layer)
+- **Framework**: Next.js (App Router)  
+  _Full-stack React framework with server rendering support._
+- **Language**: TypeScript  
+  _Strongly typed frontend for robust code._
+- **Styling**: Tailwind CSS + Styled Components  
+  _For atomic styling and custom component theming._
+- **GraphQL Client**: Apollo Client  
+  _Querying and mutating the GraphQL API from UI._
+- **Authentication**: NextAuth.js with JWT strategy  
+  _Secure session handling with frontend/server integration._
+- **State Management**: React Hooks  
+  _Minimal local state with `useState`, `useEffect`, and custom hooks._
+
+## 🏗️ Architecture Overview
+```
+📦 backend/
+├── src/
+│   ├── journal/          # CRUD operations for journals
+│   ├── ai/               # AI text generation service
+│   ├── auth/             # Auth controller + JWT guards
+│   └── users/            # User profile and preferences
+├── prisma/               # DB schema and migrations
+└── main.ts               # Bootstrap app
+
+📦 frontend/
+├── src/
+│   ├── app/              # Pages (create, edit, dashboard)
+│   ├── components/       # Shared components (Sidebar, JournalList, etc.)
+│   ├── hooks/            # Custom Apollo & AI hook
+│   └── styles/           # Global and theme styles
+```
+
+## 📋 Feature Implementation Plan
+
+### ✅ 1. User Authentication
+- JWT issuance via NestJS
+- `bcrypt`-based password hashing
+- Login/Signup routes with GraphQL
+- Session handling in frontend via `NextAuth.js`
+
+### ✅ 2. Journal Entry Management
+- Full CRUD via NestJS GraphQL resolvers
+- Enum-based category selection
+- Pagination-ready querying
+- Editable in `/dashboard/create` and `/dashboard/edit/[id]`
+
+### ✅ 3. Dashboard + Analytics
+- Pie Chart: Category distribution
+- Line Chart: Word count over time
+- Summary Box: Total number of entries
+- Data transformation done client-side from GraphQL response
+
+### ✅ 4. AI-Powered Text Generation ✨
+- Mutation: `analyzeJournal(input: AnalyzeJournalInput!)`
+- Based on Hugging Face free models:
+  - `mistralai/Mistral-7B-Instruct-v0.1`
+  - `tiiuae/falcon-7b-instruct`
+  - `openchat/openchat-3.5-0106`
+- Injects suggestion directly into the journal `content` field 
+- Graceful fallback handling if model fails
+
+## 🧬 Database Schema
+```prisma
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  entries   Entry[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Entry {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  category  Category
+  mood      String?
+  sentiment String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Category {
+  PERSONAL
+  WORK
+  EDUCATION
+  TRAVEL
+  OTHER
+}
+```
+
+## 📅 Development Timeline
+
+### **Phase 1 — Setup & Auth (Days 1–3)**
+- Initialize NestJS and Next.js projects
+- Configure GraphQL and Prisma
+- Implement backend auth and session-based frontend auth
+
+### **Phase 2 — Core Journal Features (Days 4–6)**
+- CRUD operations (entry, edit, delete)
+- Category selection via enum
+- Persisting entries to database
+- UI form validation
+
+### **Phase 3 — Dashboard & Analytics (Days 7–8)**
+- Dashboard layout with cards and charts
+- Word count trends (Line chart)
+- Category overview (Pie chart)
+
+### **Phase 4 — AI Integration & Polish (Days 9–10)**
+- Add AI text generation via Hugging Face
+- Hook up frontend mutation via `useAnalyzeJournal`
+- Inject suggestions into content field (non-modal)
+- UI/UX polishing (responsive layout, loading states)
+
+## 💡 Future Ideas
+- Mood detection & emoji tagging via AI
+- Calendar heatmap for journaling frequency
+- Export to PDF or Markdown
+- Offline-first support via PWA
+
+## ✅ Status Tracker
+| Feature                     | Status        |
+|----------------------------|---------------|
+| User Auth (Nest + NextAuth)| ✅ Done       |
+| Journal CRUD               | ✅ Done       |
+| Analytics Dashboard        | ✅ Done       |
+| AI Suggestion (HuggingFace)| ✅ Done       |
+| Edit + Create Flows        | ✅ Done       |
+| UI/UX Enhancements         | 🛠 In Progress |
+| Sentiment Detection (AI)   | 🔜 Optional   |
