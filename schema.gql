@@ -2,6 +2,16 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type AiResponse {
+  mood: String!
+  sentiment: String!
+  summary: String!
+}
+
+input AnalyzeJournalInput {
+  content: String!
+}
+
 enum Category {
   EDUCATION
   FINANCE
@@ -70,6 +80,7 @@ type LoginResponseDTO {
 }
 
 type Mutation {
+  analyzeJournal(input: AnalyzeJournalInput!): AiResponse!
   changeUserRole(id: String!, newRole: Role!): UserEntity!
 
   """Create a new journal entry for the authenticated user"""

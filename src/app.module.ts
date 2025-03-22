@@ -14,6 +14,7 @@ import { JwtStrategy } from './auth/strategy/jwt.strategy';
 import { LocalStrategy } from './auth/strategy/local.strategy';
 import { PrismaModule } from './prisma/prisma.module';
 import { PassportModule } from '@nestjs/passport';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { PassportModule } from '@nestjs/passport';
     AuthModule,
     JournalModule,
     UserModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService, AuthResolver, LocalStrategy, JwtStrategy],
