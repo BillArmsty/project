@@ -28,6 +28,14 @@ const UPDATE_JOURNAL_ENTRY = gql`
   }
 `;
 
+const ANALYZE_JOURNAL = gql`
+  mutation AnalyzeJournal($input: AnalyzeJournalInput!) {
+    analyzeJournal(input: $input) {
+      summary
+    }
+  }
+`;
+
 // ✅ Categories
 const CATEGORIES = ["PERSONAL", "WORK", "EDUCATION", "TRAVEL", "OTHER"];
 
@@ -59,7 +67,7 @@ const TextArea = styled.textarea`
   border: 1px solid #555;
   background: #1e1e2e;
   color: white;
-  min-height: 120px;
+  min-height: 180px;
 `;
 
 const CategoryContainer = styled.div`
@@ -82,8 +90,14 @@ const CategoryBubble = styled.button<{ selected: boolean }>`
   }
 `;
 
+const ButtonRow = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+`;
+
 const SaveButton = styled.button`
-  width: 100%;
+  flex: 1;
   padding: 12px;
   border-radius: 6px;
   background: #3b82f6;
@@ -95,48 +109,24 @@ const SaveButton = styled.button`
   }
 `;
 
-// ✅ Modal Overlay & Popup
+const SuggestionButton = styled.button`
+  flex: 1;
+  padding: 12px;
+  border-radius: 6px;
+  background: #10b981;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  &:hover {
+    background: #059669;
+  }
+`;
+
 const GlobalStyle = createGlobalStyle`
   body.modal-open {
     overflow: hidden;
     backdrop-filter: blur(8px);
     background-color: rgba(0, 0, 0, 0.6);
-  }
-`;
-
-const ModalOverlay = styled.div`
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 999;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
-
-const ModalBox = styled.div`
-  background: #1e1e2e;
-  padding: 30px;
-  max-width: 90%;
-  border-radius: 10px;
-  width: 400px;
-  text-align: center;
-  color: white;
-`;
-
-const ModalTitle = styled.h3`
-  margin-bottom: 15px;
-`;
-
-const CloseButton = styled.button`
-  background: #3b82f6;
-  color: white;
-  padding: 8px 15px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  &:hover {
-    background: #2563eb;
   }
 `;
 
@@ -148,7 +138,6 @@ export default function EditJournal() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("OTHER");
-  const [showModal, setShowModal] = useState(false);
 
   const { data, loading, error } = useQuery(GET_JOURNAL_ENTRY, {
     variables: { id },
@@ -164,15 +153,8 @@ export default function EditJournal() {
     }
   }, [data]);
 
-  useEffect(() => {
-    if (showModal) {
-      document.body.classList.add("modal-open");
-    } else {
-      document.body.classList.remove("modal-open");
-    }
-  }, [showModal]);
-
   const [updateJournalEntry] = useMutation(UPDATE_JOURNAL_ENTRY);
+  const [analyzeJournal, { loading: analyzing }] = useMutation(ANALYZE_JOURNAL);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,16 +166,24 @@ export default function EditJournal() {
           data: { id, title, content, category },
         },
       });
-
-      setShowModal(true);
+      router.push("/dashboard");
     } catch (err) {
       console.error("Update failed:", err);
     }
   };
 
-  const handleCloseModal = () => {
-    setShowModal(false);
-    router.push("/dashboard");
+  const handleGenerateSuggestion = async () => {
+    try {
+      const { data } = await analyzeJournal({
+        variables: { input: { content } },
+      });
+
+      if (data?.analyzeJournal?.summary) {
+        setContent(data.analyzeJournal.summary);
+      }
+    } catch (error) {
+      console.error("AI generation failed:", error);
+    }
   };
 
   if (loading) return <p>Loading journal...</p>;
@@ -232,21 +222,18 @@ export default function EditJournal() {
             ))}
           </CategoryContainer>
 
-          <SaveButton type="submit">Save Changes</SaveButton>
+          <ButtonRow>
+            <SaveButton type="submit">Save Changes</SaveButton>
+            <SuggestionButton
+              type="button"
+              onClick={handleGenerateSuggestion}
+              disabled={analyzing}
+            >
+              {analyzing ? "Thinking..." : "Generate Suggestion"}
+            </SuggestionButton>
+          </ButtonRow>
         </form>
       </FormContainer>
-
-      {/* ✅ Modal */}
-      {showModal && (
-        <ModalOverlay>
-          <ModalBox>
-            <ModalTitle>✅ Journal Updated Successfully!</ModalTitle>
-            <CloseButton onClick={handleCloseModal}>
-              Go to Dashboard
-            </CloseButton>
-          </ModalBox>
-        </ModalOverlay>
-      )}
     </>
   );
 }
