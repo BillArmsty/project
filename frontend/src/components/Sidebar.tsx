@@ -1,87 +1,93 @@
-import { useState } from "react";
+"use client";
+
+import { useRouter } from "next/navigation";
 import styled from "styled-components";
-import { FaBars, FaTimes, FaHome, FaChartPie, FaBook } from "react-icons/fa";
-import Link from "next/link";
+import { useState } from "react";
+import {
+  FaHome,
+  FaBook,
+  FaChartBar,
+  FaCog,
+  FaBars,
+  FaTimes,
+} from "react-icons/fa";
 
 const SidebarContainer = styled.div<{ $collapsed: boolean }>`
-  width: ${(props) => (props.$collapsed ? "60px" : "250px")};
-  height: 100vh;
+  width: ${(props) => (props.$collapsed ? "60px" : "200px")};
   background: #0f172a;
   color: white;
+  transition: width 0.3s ease;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  transition: width 0.3s ease-in-out;
   position: relative;
-  overflow: hidden;
 `;
 
 const ToggleButton = styled.button`
-  position: absolute;
-  top: 15px;
-  left: 15px;
   background: none;
   border: none;
   color: white;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   cursor: pointer;
-  transition: left 0.3s ease-in-out;
-
-  &:hover {
-    color: #007bff;
-  }
+  padding: 16px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
 `;
 
-const NavItem = styled(Link)<{ $collapsed: boolean }>`
+const NavItem = styled.button`
   display: flex;
   align-items: center;
-  padding: 12px 20px;
+  gap: 10px;
+  background: none;
+  border: none;
   color: white;
-  text-decoration: none;
-  font-size: ${(props) => (props.$collapsed ? "0px" : "1rem")};
-  white-space: nowrap;
-  opacity: ${(props) => (props.$collapsed ? "0" : "1")};
-  transition: opacity 0.3s ease-in-out;
-  overflow: hidden;
+  font-size: 1rem;
+  padding: 14px 20px;
+  cursor: pointer;
+  text-align: left;
 
   &:hover {
     background: #1e293b;
   }
 `;
 
-const Icon = styled.span`
-  font-size: 1.5rem;
-  margin-right: 15px;
-`;
-
 export default function Sidebar() {
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+
+  const handleNav = (path: string) => {
+    router.push(path);
+  };
 
   return (
     <SidebarContainer $collapsed={collapsed}>
-      <ToggleButton onClick={() => setCollapsed(!collapsed)}>
+      <ToggleButton onClick={() => setCollapsed((prev) => !prev)}>
         {collapsed ? <FaBars /> : <FaTimes />}
       </ToggleButton>
 
-      <NavItem $collapsed={collapsed} href="/">
-        <Icon>
+      <div style={{ marginTop: "60px" }}>
+        <NavItem onClick={() => handleNav("/")}>
           <FaHome />
-        </Icon>
-        Journify Home
-      </NavItem>
+          {!collapsed && "Home"}
+        </NavItem>
 
-      <NavItem $collapsed={collapsed} href="/dashboard">
-        <Icon>
+        <NavItem onClick={() => handleNav("/dashboard")}>
           <FaBook />
-        </Icon>
-        My Journals
-      </NavItem>
+          {!collapsed && "My Journals"}
+        </NavItem>
 
-      <NavItem $collapsed={collapsed} href="/dashboard/analytics">
-        <Icon>
-          <FaChartPie />
-        </Icon>
-        Analytics
-      </NavItem>
+        <NavItem onClick={() => handleNav("/dashboard/analytics")}>
+          <FaChartBar />
+          {!collapsed && "Analytics"}
+        </NavItem>
+
+        <NavItem onClick={() => handleNav("/settings")}>
+          <FaCog />
+          {!collapsed && "Settings"}
+        </NavItem>
+      </div>
     </SidebarContainer>
   );
 }

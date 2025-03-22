@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styled from "styled-components";
-import { FaTimes } from "react-icons/fa";
+import {
+  FaEye,
+  FaEyeSlash,
+  FaTimes,
+  FaCheckCircle,
+  FaTimesCircle,
+} from "react-icons/fa";
 import { gql, useMutation } from "@apollo/client";
 
 // ** GraphQL Mutations **
@@ -51,7 +57,7 @@ const Overlay = styled.div`
 const ModalContainer = styled.div`
   background: white;
   border-radius: 10px;
-  padding: 20px;
+  padding: 30px;
   width: 400px;
   box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.3);
   position: relative;
@@ -83,7 +89,7 @@ const CloseButton = styled.button`
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 15px;
 `;
 
 const Input = styled.input`
@@ -91,6 +97,7 @@ const Input = styled.input`
   border: 1px solid #ddd;
   border-radius: 5px;
   font-size: 1rem;
+  width: 100%;
 `;
 
 const ErrorText = styled.p`
@@ -128,33 +135,73 @@ const ToggleButton = styled.span`
   }
 `;
 
+const TogglePassword = styled.div`
+  position: absolute;
+  right: 15px;
+  top: 68%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #666;
+  font-size: 1.2rem;
+`;
+
+const InputWrapper = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+`;
+
+const PasswordChecklist = styled.ul`
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  margin-top: 6px;
+`;
+
+const PasswordRule = styled.li<{ passed: boolean }>`
+  font-size: 0.85rem;
+  color: ${({ passed }) => (passed ? "green" : "red")};
+  display: flex;
+  align-items: center;
+  gap: 6px;
+`;
+
 export default function LoginRegisterModal({ isOpen, onClose }: ModalProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string>("");
+  const [showPassword, setShowPassword] = useState(false);
+
   const router = useRouter();
 
   const [register] = useMutation(REGISTER_MUTATION);
   const [login] = useMutation(LOGIN_MUTATION);
 
-  // ** Regex Validation **
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const passwordRegex =
     /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-  // ** Handle Form Submission **
+  const passwordRules = [
+    { label: "At least 8 characters", test: (pw: string) => pw.length >= 8 },
+    { label: "1 uppercase letter", test: (pw: string) => /[A-Z]/.test(pw) },
+    { label: "1 lowercase letter", test: (pw: string) => /[a-z]/.test(pw) },
+    { label: "1 digit", test: (pw: string) => /\d/.test(pw) },
+    {
+      label: "1 special character (@$!%*?&)",
+      test: (pw: string) => /[@$!%*?&]/.test(pw),
+    },
+  ];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    // Email Validation
     if (!emailRegex.test(email)) {
       setError("Invalid email format. Use a valid email.");
       return;
     }
 
-    // Password Validation
     if (!passwordRegex.test(password)) {
       setError(
         "Password must be at least 8 characters, include an uppercase, lowercase, number, and special character."
@@ -166,18 +213,10 @@ export default function LoginRegisterModal({ isOpen, onClose }: ModalProps) {
       let token = "";
 
       if (isLogin) {
-        // **LOGIN REQUEST**
-        const { data } = await login({
-          variables: { email, password },
-        });
-
+        const { data } = await login({ variables: { email, password } });
         token = data?.login?.access_token;
       } else {
-        // **REGISTER REQUEST**
-        const { data } = await register({
-          variables: { email, password },
-        });
-
+        const { data } = await register({ variables: { email, password } });
         token = data?.register?.access_token;
       }
 
@@ -186,8 +225,8 @@ export default function LoginRegisterModal({ isOpen, onClose }: ModalProps) {
         onClose();
         router.push("/dashboard");
       }
-    } catch (error: unknown) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
       setError("Authentication failed. Please check your details.");
     }
   };
@@ -197,7 +236,6 @@ export default function LoginRegisterModal({ isOpen, onClose }: ModalProps) {
   return (
     <Overlay>
       <ModalContainer>
-        {/* Modal Header */}
         <ModalHeader>
           <Title>{isLogin ? "Login" : "Register"}</Title>
           <CloseButton onClick={onClose}>
@@ -205,7 +243,6 @@ export default function LoginRegisterModal({ isOpen, onClose }: ModalProps) {
           </CloseButton>
         </ModalHeader>
 
-        {/* Form Fields */}
         <Form onSubmit={handleSubmit}>
           <Input
             type="email"
@@ -214,20 +251,41 @@ export default function LoginRegisterModal({ isOpen, onClose }: ModalProps) {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <Input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+
+          <InputWrapper>
+            <Input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <TogglePassword onClick={() => setShowPassword((prev) => !prev)}>
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </TogglePassword>
+          </InputWrapper>
+
+          {/* Live checklist only for registration */}
+          {!isLogin && (
+            <PasswordChecklist>
+              {passwordRules.map((rule) => {
+                const passed = rule.test(password);
+                return (
+                  <PasswordRule key={rule.label} passed={passed}>
+                    {passed ? <FaCheckCircle /> : <FaTimesCircle />}{" "}
+                    {rule.label}
+                  </PasswordRule>
+                );
+              })}
+            </PasswordChecklist>
+          )}
+
           {error && <ErrorText>{error}</ErrorText>}
           <SubmitButton type="submit">
             {isLogin ? "Login" : "Register"}
           </SubmitButton>
         </Form>
 
-        {/* Toggle between Login/Register */}
         <ToggleText>
           {isLogin ? "Don't have an account?" : "Already have an account?"}
           <ToggleButton onClick={() => setIsLogin(!isLogin)}>
