@@ -4,10 +4,11 @@ import { UserEntity } from './entities/user.entity';
 import { CreateUserInput } from './dto/create-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import {  UnauthorizedException, UseGuards } from '@nestjs/common';
+import { UnauthorizedException, UseGuards } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { ChangePasswordInput } from './dto/change-password.input';
 
 @Resolver(() => UserEntity)
 export class UserResolver {
@@ -36,8 +37,14 @@ export class UserResolver {
     return this.userService.updateUserRole(id, newRole);
   }
 
-
-
+  @Mutation(() => Boolean)
+  @UseGuards(JwtAuthGuard)
+  changePassword(
+    @CurrentUser() user: { id: string },
+    @Args('input') input: ChangePasswordInput,
+  ) {
+    return this.userService.changePassword(user.id, input);
+  }
 
   @Query(() => UserEntity)
   @UseGuards(JwtAuthGuard)
@@ -47,7 +54,7 @@ export class UserResolver {
 
   @Query(() => [UserEntity])
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN) 
+  @Roles(Role.ADMIN)
   getAllUsers(): Promise<UserEntity[]> {
     return this.userService.findAll();
   }
@@ -57,8 +64,6 @@ export class UserResolver {
   async findOne(@Args('email') email: string) {
     return this.userService.findOne(email);
   }
-
-
 
   @Mutation(() => UserEntity)
   @UseGuards(JwtAuthGuard)

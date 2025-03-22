@@ -27,6 +27,11 @@ type CategoryDistributionData {
   count: Float!
 }
 
+input ChangePasswordInput {
+  currentPassword: String!
+  newPassword: String!
+}
+
 input CreateJournalInput {
   category: Category!
   content: String!
@@ -81,6 +86,7 @@ type LoginResponseDTO {
 
 type Mutation {
   analyzeJournal(input: AnalyzeJournalInput!): AiResponse!
+  changePassword(input: ChangePasswordInput!): Boolean!
   changeUserRole(id: String!, newRole: Role!): UserEntity!
 
   """Create a new journal entry for the authenticated user"""

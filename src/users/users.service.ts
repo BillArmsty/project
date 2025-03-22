@@ -2,11 +2,14 @@ import {
   Injectable,
   BadRequestException,
   ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserInput } from './dto/create-user.dto';
 import { UserEntity } from './entities/user.entity';
 import { Role } from '@prisma/client';
+import { ChangePasswordInput } from './dto/change-password.input';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -76,6 +79,31 @@ export class UserService {
       where: { id },
       data: { role: newRole },
     });
+  }
+
+  async changePassword(
+    userId: string,
+    input: ChangePasswordInput,
+  ): Promise<boolean> {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (
+      !user ||
+      !(await bcrypt.compare(input.currentPassword, user.password))
+    ) {
+      throw new ForbiddenException('Current password is incorrect');
+    }
+
+    const hashed = await bcrypt.hash(input.newPassword, 10);
+
+    await this.prismaService.user.update({
+      where: { id: userId },
+      data: { password: hashed },
+    });
+
+    return true;
   }
 
   async remove(email: string) {
