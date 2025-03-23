@@ -30,7 +30,7 @@ const FormContainer = styled.div`
   max-width: 720px;
   margin: 120px auto;
   padding: 30px;
-  background: #2a2a3d;
+  background:${({ theme }) => theme.background};
   border-radius: 20px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 `;
@@ -41,8 +41,8 @@ const Input = styled.input`
   margin-bottom: 10px;
   border-radius: 6px;
   border: 1px solid #555;
-  background: #1e1e2e;
-  color: white;
+  background:${({ theme }) => theme.background};
+  color: ${({ theme }) => theme.text};
 `;
 
 const TextArea = styled.textarea`
@@ -51,8 +51,8 @@ const TextArea = styled.textarea`
   margin-bottom: 10px;
   border-radius: 6px;
   border: 1px solid #555;
-  background: #1e1e2e;
-  color: white;
+  background:${({ theme }) => theme.background};
+  color: ${({ theme }) => theme.text};
   min-height: 180px;
 `;
 
@@ -69,7 +69,7 @@ const CategoryBubble = styled.button<{ selected: boolean }>`
   border: none;
   cursor: pointer;
   background: ${({ selected }) => (selected ? "#3b82f6" : "#444")};
-  color: white;
+  color:${({ theme }) => theme.text};
   font-size: 0.85rem;
   &:hover {
     background: #2563eb;
@@ -87,7 +87,7 @@ const SaveButton = styled.button`
   padding: 12px;
   border-radius: 6px;
   background: #3b82f6;
-  color: white;
+  color: ${({ theme }) => theme.text};
   font-weight: bold;
   cursor: pointer;
   &:hover {

@@ -55,13 +55,13 @@ interface JournalEntry {
 const DashboardContainer = styled.div`
   display: flex;
   height: 100vh;
-  background: #0f172a;
+  background:${({ theme }) => theme.background};;
 `;
 
 const ContentArea = styled.div`
   flex: 1;
   padding: 20px;
-  background: #1e1e2e;
+  background:${({ theme }) => theme.background};
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -81,8 +81,8 @@ const GridLayout = styled.div`
 `;
 
 const SummaryBox = styled.div`
-  background: #2a2a3d;
-  color: white;
+  background: ${({ theme }) => theme.background};
+  color: ${({ theme }) => theme.text};
   padding: 50px;
   border-radius: 10px;
   text-align: center;
@@ -98,8 +98,8 @@ const TotalEntries = styled.h2`
 `;
 
 const ChartContainer = styled.div`
-  background: #2a2a3d;
-  color: white;
+  background: ${({ theme }) => theme.background};
+  color: ${({ theme }) => theme.text};
   padding: 20px;
   border-radius: 10px;
   height: 414px;
@@ -112,8 +112,8 @@ const ChartContainer = styled.div`
 const AddButton = styled.button`
   display: flex;
   align-items: center;
-  background: #007bff;
-  color: white;
+  background: ${({ theme }) => theme.background};
+  color:${({ theme }) => theme.text};
   border: none;
   border-radius: 5px;
   padding: 10px 15px;
@@ -122,13 +122,13 @@ const AddButton = styled.button`
   cursor: pointer;
 
   &:hover {
-    background: #0056b3;
+    background:${({ theme }) => theme.background};
   }
 `;
 
 const JournalContainer = styled.div`
-  background: #2a2a3d;
-  color: white;
+  background:${({ theme }) => theme.background};
+  color: ${({ theme }) => theme.text};
   padding: 20px;
   border-radius: 10px;
   width: 100%;
@@ -140,7 +140,7 @@ const JournalContainer = styled.div`
 const LoaderOverlay = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: ${({ theme }) => theme.background};
   backdrop-filter: blur(10px);
   display: flex;
   align-items: center;

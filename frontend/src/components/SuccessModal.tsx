@@ -6,8 +6,8 @@ const ModalContainer = styled.div`
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background: #28a745;
-  color: white;
+  background: ${({ theme }) => theme.success}; /* 🟢 Themed success color */
+  color: ${({ theme }) => theme.text};
   padding: 15px 20px;
   border-radius: 5px;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);

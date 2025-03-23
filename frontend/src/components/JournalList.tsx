@@ -35,38 +35,10 @@ const JournalContainer = styled.div`
   padding-bottom: 15px;
 `;
 
-const JournalCard = styled.div`
-  background: #2a2a3d;
-  padding: 12px;
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  border: 1px solid #3a3a4a;
-  position: relative;
-
-  &:hover {
-    background: #444;
-  }
-`;
-
 const JournalHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-`;
-
-const JournalTitle = styled.h4`
-  color: #007bff;
-  font-size: 1rem;
-  font-weight: bold;
-  margin: 0;
-`;
-
-const JournalContent = styled.p`
-  color: #ddd;
-  font-size: 0.9rem;
-  margin: 4px 0;
 `;
 
 const BottomSection = styled.div`
@@ -109,17 +81,6 @@ const ModalOverlay = styled.div`
   justify-content: center;
   align-items: center;
   z-index: 999;
-`;
-
-const ModalContainer = styled.div`
-  background: #1e1e2e;
-  padding: 25px;
-  border-radius: 12px;
-  text-align: center;
-  color: white;
-  width: 350px;
-  max-width: 90%;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
 `;
 
 const ModalTitle = styled.h3`
@@ -168,26 +129,6 @@ const PaginationContainer = styled.div`
   margin-top: 20px;
 `;
 
-const PaginationButton = styled.button`
-  background: #007bff;
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 5px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background 0.3s ease-in-out;
-
-  &:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-  }
-
-  &:hover:not(:disabled) {
-    background: #0056b3;
-  }
-`;
-
 // ✅ Loader
 const LoaderOverlay = styled.div`
   position: fixed;
@@ -200,21 +141,78 @@ const LoaderOverlay = styled.div`
   align-items: center;
 `;
 
+const JournalCard = styled.div`
+  background: ${({ theme }) => theme.card};
+  color: ${({ theme }) => theme.text};
+  padding: 12px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid ${({ theme }) => theme.border};
+  position: relative;
+
+  &:hover {
+    background: ${({ theme }) => theme.cardHover};
+  }
+`;
+
+const JournalTitle = styled.h4`
+  color: ${({ theme }) => theme.logoGradient}; // Optional, or just theme.text
+  font-size: 1rem;
+  font-weight: bold;
+  margin: 0;
+`;
+
+const JournalContent = styled.p`
+  color: ${({ theme }) => theme.text};
+  font-size: 0.9rem;
+  margin: 4px 0;
+`;
+
+const ModalContainer = styled.div`
+  background: ${({ theme }) => theme.card};
+  color: ${({ theme }) => theme.text};
+  padding: 25px;
+  border-radius: 12px;
+  text-align: center;
+  width: 350px;
+  max-width: 90%;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+`;
+
 const Spinner = styled.div`
   width: 40px;
   height: 40px;
-  border: 4px solid white;
+  border: 4px solid ${({ theme }) => theme.border};
   border-top: 4px solid #007bff;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 
   @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
+    to {
       transform: rotate(360deg);
     }
+  }
+`;
+
+const PaginationButton = styled.button`
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+
+  &:disabled {
+    background: ${({ theme }) => theme.border};
+    cursor: not-allowed;
+  }
+
+  &:hover:not(:disabled) {
+    background: #0056b3;
   }
 `;
 

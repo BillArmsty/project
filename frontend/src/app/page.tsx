@@ -9,7 +9,8 @@ import Image from "next/image";
 
 const Container = styled.div`
   min-height: 100vh;
-  background: #0f172a;
+  background: ${({ theme }) => theme.background};
+  color: ${({ theme }) => theme.text};
   overflow: hidden;
   position: relative;
   font-family: 'Inter', sans-serif;
@@ -22,7 +23,7 @@ const Nav = styled.nav`
   align-items: center;
   position: relative;
   z-index: 10;
-  background: rgba(15, 23, 42, 0.8);
+  background: ${({ theme }) => theme.navBackground};
   backdrop-filter: blur(10px);
 `;
 
@@ -91,14 +92,14 @@ const Heading = styled(motion.h1)`
 const SubText = styled(motion.p)`
   font-size: 1.25rem;
   line-height: 1.7;
-  color: #94a3b8;
+  color: ${({ theme }) => theme.subtext};
   margin-bottom: 2rem;
 `;
 
 const ButtonGroup = styled(motion.div)`
   display: flex;
   gap: 1rem;
-  
+
   @media (max-width: 968px) {
     justify-content: center;
   }
@@ -111,7 +112,7 @@ const Button = styled(motion.button)<{ $primary?: boolean }>`
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
-  
+
   ${({ $primary }) => $primary ? `
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: white;
@@ -139,7 +140,7 @@ const ImageSection = styled(motion.div)`
   border-radius: 24px;
   overflow: hidden;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -147,7 +148,7 @@ const ImageSection = styled(motion.div)`
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.2) 100%);
     z-index: 1;
   }
-  
+
   @media (max-width: 968px) {
     height: 300px;
     margin-top: 2rem;
@@ -162,7 +163,7 @@ const FeatureGrid = styled.div`
   max-width: 1400px;
   margin: 0 auto;
   position: relative;
-  background: url('https://source.unsplash.com/random/1200x800?paper,texture') no-repeat center center;
+  background: ${({ theme }) => theme.featureBg};
   background-size: cover;
   background-attachment: fixed;
 
@@ -170,13 +171,13 @@ const FeatureGrid = styled.div`
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(15, 23, 42, 0.9);
+    background: ${({ theme }) => theme.overlay};
     z-index: 0;
   }
 `;
 
 const FeatureCard = styled(motion.div)`
-  background: rgba(30, 41, 59, 0.7);
+  background: ${({ theme }) => theme.card};
   padding: 2rem;
   border-radius: 16px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
@@ -188,7 +189,6 @@ const FeatureCard = styled(motion.div)`
 
   &:hover {
     transform: translateY(-5px);
-    background: rgba(30, 41, 59, 0.8);
   }
 `;
 
@@ -202,11 +202,9 @@ const FeatureTitle = styled.h3`
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: #e2e8f0;
 `;
 
 const FeatureDescription = styled.p`
-  color: #94a3b8;
   line-height: 1.6;
 `;
 

@@ -14,8 +14,8 @@ import {
 
 const SidebarContainer = styled.div<{ $collapsed: boolean }>`
   width: ${(props) => (props.$collapsed ? "60px" : "200px")};
-  background: #0f172a;
-  color: white;
+  background: ${({ theme }) => theme.background};
+  color: ${({ theme }) => theme.text};
   transition: width 0.3s ease;
   height: 100vh;
   display: flex;
@@ -26,7 +26,7 @@ const SidebarContainer = styled.div<{ $collapsed: boolean }>`
 const ToggleButton = styled.button`
   background: none;
   border: none;
-  color: white;
+  color: ${({ theme }) => theme.text};
   font-size: 1.4rem;
   cursor: pointer;
   padding: 16px;
@@ -42,14 +42,15 @@ const NavItem = styled.button`
   gap: 10px;
   background: none;
   border: none;
-  color: white;
+  color: ${({ theme }) => theme.text};
   font-size: 1rem;
   padding: 14px 20px;
   cursor: pointer;
   text-align: left;
+  width: 100%;
 
   &:hover {
-    background: #1e293b;
+    background: ${({ theme }) => theme.cardHover};
   }
 `;
 

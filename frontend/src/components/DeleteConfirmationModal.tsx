@@ -1,4 +1,3 @@
-// components/DeleteConfirmationModal.tsx
 "use client";
 
 import styled, { createGlobalStyle } from "styled-components";
@@ -27,18 +26,18 @@ const Overlay = styled.div`
 `;
 
 const ModalBox = styled.div`
-  background: #1e1e2e;
+  background: ${({ theme }) => theme.card};
+  color: ${({ theme }) => theme.text};
   padding: 24px;
   border-radius: 10px;
   text-align: center;
   width: 360px;
   max-width: 90%;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
 `;
 
 const ModalTitle = styled.h3`
-  color: white;
+  color: ${({ theme }) => theme.text};
   margin-bottom: 20px;
   font-size: 1.1rem;
 `;
@@ -50,28 +49,30 @@ const ButtonGroup = styled.div`
 `;
 
 const CancelButton = styled.button`
-  background: #3a3a4a;
-  color: white;
+  background: ${({ theme }) => theme.border};
+  color: ${({ theme }) => theme.text};
   padding: 8px 16px;
   border: none;
   border-radius: 6px;
   font-size: 0.9rem;
   cursor: pointer;
+
   &:hover {
-    background: #555;
+    background: ${({ theme }) => theme.cardHover};
   }
 `;
 
 const DeleteButton = styled.button`
-  background: #ff4d4f;
+  background: #ef4444;
   color: white;
   padding: 8px 16px;
   border: none;
   border-radius: 6px;
   font-size: 0.9rem;
   cursor: pointer;
+
   &:hover {
-    background: #d9363e;
+    background: #dc2626;
   }
 `;
 

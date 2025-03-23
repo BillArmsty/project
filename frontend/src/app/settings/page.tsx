@@ -6,6 +6,7 @@ import { gql, useMutation } from "@apollo/client";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Sidebar from "@/components/Sidebar";
 import { useRouter } from "next/navigation";
+import { useThemeContext } from "@/context/ThemeContext";
 
 // ✅ GraphQL Mutation
 const CHANGE_PASSWORD = gql`
@@ -30,20 +31,20 @@ const rules = [
 const PageLayout = styled.div`
   display: flex;
   height: 100vh;
-  background: #0f172a;
+  background: ${({ theme }) => theme.background};
 `;
 
 const Content = styled.div`
   flex: 1;
-  padding: 60px 30px;
-  background: #1e1e2e;
-  color: white;
+  padding: 60px 60px;
+  background: ${({ theme }) => theme.background};
+  color: ${({ theme }) => theme.text};
 `;
 
 const Container = styled.div`
-  max-width: 500px;
-  background: #111827;
-  padding: 150px;
+  max-width: 800px;
+  background: ${({ theme }) => theme.card};
+  padding: 170px;
   border-radius: 10px;
   margin: 0 auto;
 `;
@@ -57,7 +58,7 @@ const Title = styled.h2`
 const Label = styled.label`
   display: block;
   margin-bottom: 6px;
-  color: #cbd5e1;
+  color: ${({ theme }) => theme.textSecondary};
 `;
 
 const InputWrapper = styled.div`
@@ -67,11 +68,11 @@ const InputWrapper = styled.div`
 
 const Input = styled.input`
   width: 100%;
-  background: #2a2a3d;
+  background: ${({ theme }) => theme.inputBackground};
   border: 1px solid #555;
   border-radius: 6px;
   padding: 10px 40px 10px 12px;
-  color: white;
+  color: ${({ theme }) => theme.text};
 `;
 
 const ToggleBtn = styled.button`
@@ -131,9 +132,9 @@ const ModalOverlay = styled.div`
 `;
 
 const ModalBox = styled.div`
-  background: #1e1e2e;
-  color: white;
-  padding: 30px 40px;
+  background: ${({ theme }) => theme.card};
+  color: ${({ theme }) => theme.text};
+  padding: 0px 40px;
   border-radius: 12px;
   text-align: center;
   animation: ${fadeIn} 0.3s ease forwards;
@@ -155,17 +156,38 @@ const ModalButton = styled.button`
   }
 `;
 
+const ThemeToggle = styled.div`
+  margin-top: 40px;
+  text-align: center;
+  color: ${({ theme }) => theme.textSecondary};
+
+  button {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+
+    &:hover {
+      background: #2563eb;
+    }
+  }
+`;
+
 export default function SettingsPage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showModal, setShowModal] = useState(false);
-
-  const modalRef = useRef(null);
+  const modalRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const [changePassword] = useMutation(CHANGE_PASSWORD);
 
+  const { theme, toggleTheme } = useThemeContext();
   const allRulesPassed = rules.every((rule) => rule.test(newPassword));
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -181,16 +203,12 @@ export default function SettingsPage() {
 
       setTimeout(() => {
         setShowModal(false);
-        // Optional logout:
-        // localStorage.removeItem("token");
-        // router.push("/login");
       }, 3000);
     } catch (error) {
       console.error("Password change error:", error);
     }
   };
 
-  // ✅ Dismiss on outside click
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
@@ -259,6 +277,17 @@ export default function SettingsPage() {
               Change Password
             </Button>
           </form>
+
+          <ThemeToggle>
+            <p>
+              Current Theme: <strong>{theme}</strong>
+            </p>
+            <button onClick={toggleTheme}>
+              {theme === "light"
+                ? "Switch to Dark Mode"
+                : "Switch to Light Mode"}
+            </button>
+          </ThemeToggle>
         </Container>
 
         {showModal && (

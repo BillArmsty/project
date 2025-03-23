@@ -5,29 +5,29 @@ import { useState } from "react";
 import styled from "styled-components";
 import { toast } from "react-toastify";
 
-// ✅ Mutation
+// ✅ GraphQL Mutation
 const CHANGE_PASSWORD = gql`
   mutation ChangePassword($input: ChangePasswordInput!) {
     changePassword(input: $input)
   }
 `;
 
-// ✅ Styled components
+// ✅ Styled Components with theme
 const Container = styled.div`
   max-width: 400px;
   margin: 80px auto;
-  background: #1e1e2e;
+  background: ${({ theme }) => theme.card};
   padding: 30px;
   border-radius: 12px;
-  color: white;
+  color: ${({ theme }) => theme.text};
 `;
 
 const Input = styled.input`
   width: 100%;
-  background: #2a2a3d;
-  color: white;
+  background: ${({ theme }) => theme.inputBackground};
+  color: ${({ theme }) => theme.text};
   padding: 10px;
-  border: 1px solid #555;
+  border: 1px solid ${({ theme }) => theme.border || "#555"};
   border-radius: 6px;
   margin-bottom: 12px;
 `;
@@ -38,7 +38,7 @@ const ToggleBtn = styled.button`
   top: 50%;
   transform: translateY(-50%);
   background: none;
-  color: #ccc;
+  color: ${({ theme }) => theme.textSecondary || "#ccc"};
   border: none;
   cursor: pointer;
 `;
@@ -56,6 +56,8 @@ const SaveButton = styled.button`
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  margin-top: 10px;
+
   &:hover {
     background: #2563eb;
   }
@@ -91,7 +93,6 @@ export default function ChangePasswordForm() {
   const [changePassword] = useMutation(CHANGE_PASSWORD);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
-
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
 
@@ -122,7 +123,16 @@ export default function ChangePasswordForm() {
 
   return (
     <Container>
-      <h2 className="text-xl font-bold mb-4">Change Password</h2>
+      <h2
+        style={{
+          fontSize: "1.25rem",
+          fontWeight: "bold",
+          marginBottom: "1rem",
+        }}
+      >
+        Change Password
+      </h2>
+
       <form onSubmit={handleSubmit}>
         {/* Current Password */}
         <label>Current Password</label>
@@ -154,7 +164,6 @@ export default function ChangePasswordForm() {
           </ToggleBtn>
         </InputWrapper>
 
-        {/* Password strength meter */}
         <StrengthBar strength={passwordStrength} />
         <SaveButton type="submit">Change Password</SaveButton>
       </form>

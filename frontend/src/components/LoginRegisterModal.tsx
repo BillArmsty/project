@@ -42,7 +42,6 @@ interface ModalProps {
   onClose: () => void;
 }
 
-// ** Styled Components **
 const Overlay = styled.div`
   position: fixed;
   inset: 0;
@@ -55,7 +54,8 @@ const Overlay = styled.div`
 `;
 
 const ModalContainer = styled.div`
-  background: white;
+  background: ${({ theme }) => theme.card};
+  color: ${({ theme }) => theme.text};
   border-radius: 10px;
   padding: 30px;
   width: 400px;
@@ -79,10 +79,11 @@ const CloseButton = styled.button`
   background: transparent;
   border: none;
   font-size: 1.2rem;
-  color: gray;
+  color: ${({ theme }) => theme.text};
   cursor: pointer;
+
   &:hover {
-    color: black;
+    color: ${({ theme }) => theme.subText};
   }
 `;
 
@@ -94,29 +95,37 @@ const Form = styled.form`
 
 const Input = styled.input`
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid ${({ theme }) => theme.border};
   border-radius: 5px;
   font-size: 1rem;
-  width: 100%;
+  background: ${({ theme }) => theme.background};
+  color: ${({ theme }) => theme.text};
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  }
 `;
 
 const ErrorText = styled.p`
-  color: red;
+  color: #ef4444;
   font-size: 0.9rem;
   text-align: left;
 `;
 
 const SubmitButton = styled.button`
   padding: 12px;
-  background: #007bff;
+  background: #3b82f6;
   color: white;
   font-size: 1rem;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   transition: 0.3s;
+
   &:hover {
-    background: #0056b3;
+    background: #2563eb;
   }
 `;
 
@@ -124,12 +133,14 @@ const ToggleText = styled.p`
   text-align: center;
   font-size: 0.9rem;
   margin-top: 10px;
+  color: ${({ theme }) => theme.subText};
 `;
 
 const ToggleButton = styled.span`
-  color: #007bff;
+  color: #3b82f6;
   cursor: pointer;
   font-weight: bold;
+
   &:hover {
     text-decoration: underline;
   }
@@ -141,7 +152,7 @@ const TogglePassword = styled.div`
   top: 68%;
   transform: translateY(-50%);
   cursor: pointer;
-  color: #666;
+  color: ${({ theme }) => theme.subText};
   font-size: 1.2rem;
 `;
 
@@ -160,7 +171,7 @@ const PasswordChecklist = styled.ul`
 
 const PasswordRule = styled.li<{ passed: boolean }>`
   font-size: 0.85rem;
-  color: ${({ passed }) => (passed ? "green" : "red")};
+  color: ${({ passed }) => (passed ? "#10b981" : "#ef4444")};
   display: flex;
   align-items: center;
   gap: 6px;

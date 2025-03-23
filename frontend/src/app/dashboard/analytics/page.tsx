@@ -16,11 +16,11 @@ import {
   LinearScale,
   BarElement,
   LineElement,
-  PointElement, 
+  PointElement,
   TimeScale,
   ChartOptions,
 } from "chart.js";
-import "chartjs-adapter-date-fns"; 
+import "chartjs-adapter-date-fns";
 import { FaHome } from "react-icons/fa";
 
 ChartJS.register(
@@ -32,7 +32,7 @@ ChartJS.register(
   BarElement,
   LineElement,
   PointElement,
-  TimeScale 
+  TimeScale
 );
 
 // 🔹 GraphQL Query for Fetching Journal Entries
@@ -57,8 +57,8 @@ const AnalyticsContainer = styled.div`
 const ContentArea = styled.div`
   flex: 1;
   padding: 20px;
-  background: #1e1e2e;
-  color: white;
+  background: ${({ theme }) => theme.background};
+  color: ${({ theme }) => theme.text};
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -69,15 +69,15 @@ const TopBar = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 15px;
-  background: #0f172a;
+  background: ${({ theme }) => theme.background};
   border-radius: 8px;
   width: 100%;
 `;
 
 const HomeButton = styled.button`
-  background: none;
+  background: ${({ theme }) => theme.background};
   border: none;
-  color: white;
+  color: ${({ theme }) => theme.text};
   font-size: 1.2rem;
   cursor: pointer;
   display: flex;
@@ -107,8 +107,8 @@ const Grid = styled.div`
 `;
 
 const ChartContainer = styled.div`
-  background: #2a2a3d;
-  color: white;
+  background: ${({ theme }) => theme.background};
+  color: ${({ theme }) => theme.text};
   padding: 20px;
   border-radius: 10px;
   display: flex;
