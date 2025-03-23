@@ -218,6 +218,7 @@ export default function Dashboard() {
         data: Object.values(wordCountsByDate),
         borderColor: "#36A2EB",
         backgroundColor: "rgba(54, 162, 235, 0.5)",
+        pointRadius: 4,
       },
     ],
   };

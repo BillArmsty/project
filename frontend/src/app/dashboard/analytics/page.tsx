@@ -213,7 +213,7 @@ export default function Analytics() {
           unit: "day",
           tooltipFormat: "MMM dd",
         },
-        reverse: true,
+        reverse: false,
         title: {
           display: true,
           text: "Date",
