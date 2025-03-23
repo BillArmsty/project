@@ -1,9 +1,7 @@
+// src/app/dashboard/page.tsx
 "use client";
 
 import styled from "styled-components";
-import { FaPlus } from "react-icons/fa";
-import Sidebar from "../../components/Sidebar";
-import JournalList from "../../components/JournalList";
 import { gql, useQuery } from "@apollo/client";
 import { Pie, Line } from "react-chartjs-2";
 import {
@@ -19,6 +17,9 @@ import {
 } from "chart.js";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { FaPlus } from "react-icons/fa";
+import Sidebar from "../../components/Sidebar";
+import JournalList from "../../components/JournalList";
 
 ChartJS.register(
   ArcElement,
@@ -55,17 +56,42 @@ interface JournalEntry {
 const DashboardContainer = styled.div`
   display: flex;
   height: 100vh;
-  background:${({ theme }) => theme.background};;
+  background: ${({ theme }) => theme.background};
 `;
 
 const ContentArea = styled.div`
   flex: 1;
   padding: 20px;
-  background:${({ theme }) => theme.background};
+  background: ${({ theme }) => theme.background};
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 20px;
+`;
+
+const FilterContainer = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+`;
+
+const FilterButton = styled.button<{ selected: boolean }>`
+  background: ${({ selected, theme }) =>
+    selected ? theme.button : theme.card};
+  color: ${({ selected, theme }) => (selected ? "white" : theme.text)};
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s ease;
+
+  &:hover {
+    background: ${({ theme }) => theme.buttonHover};
+    color: white;
+  }
 `;
 
 const GridLayout = styled.div`
@@ -81,24 +107,54 @@ const GridLayout = styled.div`
 `;
 
 const SummaryBox = styled.div`
-  background: ${({ theme }) => theme.background};
+  background: ${({ theme }) => theme.card};
   color: ${({ theme }) => theme.text};
   padding: 50px;
   border-radius: 10px;
   text-align: center;
-  height: 340px;
+  height: 410px;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  position: relative;
 `;
 
 const TotalEntries = styled.h2`
-  font-size: 10rem;
+  font-size: 4rem;
   font-weight: bold;
+  margin-bottom: 1rem;
+`;
+
+const BigPlusButton = styled.button`
+  font-size: 5rem;
+  background: transparent;
+  border: none;
+  color: ${({ theme }) => theme.text};
+  cursor: pointer;
+
+  &:hover {
+    color: ${({ theme }) => theme.button};
+  }
+`;
+
+const AddMoreButton = styled.button`
+  margin-top: 20px;
+  background: ${({ theme }) => theme.button};
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+
+  &:hover {
+    background: ${({ theme }) => theme.buttonHover};
+  }
 `;
 
 const ChartContainer = styled.div`
-  background: ${({ theme }) => theme.background};
+  background: ${({ theme }) => theme.card};
   color: ${({ theme }) => theme.text};
   padding: 20px;
   border-radius: 10px;
@@ -109,34 +165,15 @@ const ChartContainer = styled.div`
   justify-content: center;
 `;
 
-const AddButton = styled.button`
-  display: flex;
-  align-items: center;
-  background: ${({ theme }) => theme.background};
-  color:${({ theme }) => theme.text};
-  border: none;
-  border-radius: 5px;
-  padding: 10px 15px;
-  font-size: 1rem;
-  gap: 10px;
-  cursor: pointer;
-
-  &:hover {
-    background:${({ theme }) => theme.background};
-  }
-`;
-
 const JournalContainer = styled.div`
-  background:${({ theme }) => theme.background};
+  background: ${({ theme }) => theme.card};
   color: ${({ theme }) => theme.text};
   padding: 20px;
   border-radius: 10px;
   width: 100%;
-  height: 430px;
-  overflow-y: auto;
+  height: 420px;
 `;
 
-// Loader Overlay
 const LoaderOverlay = styled.div`
   position: fixed;
   inset: 0;
@@ -151,34 +188,48 @@ const LoaderOverlay = styled.div`
 const Spinner = styled.div`
   width: 50px;
   height: 50px;
-  border: 5px solid #007bff;
+  border: 5px solid ${({ theme }) => theme.button};
   border-top: 5px solid transparent;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 
   @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
+    to {
       transform: rotate(360deg);
     }
   }
 `;
 
+const CATEGORIES = ["ALL", "PERSONAL", "WORK", "EDUCATION", "TRAVEL", "OTHER"];
+
 export default function Dashboard() {
   const router = useRouter();
   const { data, loading, error } = useQuery(GET_JOURNAL_ENTRIES);
+  const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [isRefreshing] = useState(false);
 
   if (loading) return <p>Loading dashboard...</p>;
   if (error) return <p>Error loading journals</p>;
 
-  const entries = data?.getJournalEntries || [];
+  const allEntries = data?.getJournalEntries || [];
 
-  const categoryCounts = entries.reduce(
+  const filteredEntries =
+    selectedCategory === "ALL"
+      ? allEntries
+      : allEntries.filter((e: JournalEntry) => e.category === selectedCategory);
+
+  const categoryCounts = filteredEntries.reduce(
     (acc: Record<string, number>, entry: JournalEntry) => {
       acc[entry.category] = (acc[entry.category] || 0) + 1;
+      return acc;
+    },
+    {}
+  );
+
+  const wordCountsByDate = filteredEntries.reduce(
+    (acc: Record<string, number>, entry: JournalEntry) => {
+      const date = entry.createdAt.split("T")[0];
+      acc[date] = (acc[date] || 0) + entry.content.split(" ").length;
       return acc;
     },
     {}
@@ -200,15 +251,6 @@ export default function Dashboard() {
       },
     ],
   };
-
-  const wordCountsByDate = entries.reduce(
-    (acc: Record<string, number>, entry: JournalEntry) => {
-      const date = entry.createdAt.split("T")[0];
-      acc[date] = (acc[date] || 0) + entry.content.split(" ").length;
-      return acc;
-    },
-    {}
-  );
 
   const wordCountChartData = {
     labels: Object.keys(wordCountsByDate).reverse(),
@@ -235,21 +277,40 @@ export default function Dashboard() {
     },
   };
 
-  
-  
-
   return (
     <DashboardContainer>
       <Sidebar />
       <ContentArea>
-        <AddButton onClick={() => router.push("/dashboard/create")}>
-          <FaPlus /> Add Journal
-        </AddButton>
+        {/* ✅ Category Filter Buttons */}
+        <FilterContainer>
+          {CATEGORIES.map((cat) => (
+            <FilterButton
+              key={cat}
+              selected={selectedCategory === cat}
+              onClick={() => setSelectedCategory(cat)}
+            >
+              {cat}
+            </FilterButton>
+          ))}
+        </FilterContainer>
 
         <GridLayout>
           <SummaryBox>
-            <h2>Total Entries</h2>
-            <TotalEntries>{entries.length}</TotalEntries>
+            <TotalEntries>Total Entries</TotalEntries>
+            {filteredEntries.length === 0 ? (
+              <BigPlusButton onClick={() => router.push("/dashboard/create")}>
+                <FaPlus />
+              </BigPlusButton>
+            ) : (
+              <>
+                <h1 style={{ fontSize: "8rem", margin: 0 }}>
+                  {filteredEntries.length}
+                </h1>
+                <AddMoreButton onClick={() => router.push("/dashboard/create")}>
+                  Add More
+                </AddMoreButton>
+              </>
+            )}
           </SummaryBox>
 
           <ChartContainer>
@@ -262,11 +323,9 @@ export default function Dashboard() {
           <JournalContainer>
             <h2>My Journals</h2>
             <JournalList
-              journals={entries}
-              onDelete={()=> {
-                router.refresh()
-              }}
-            />{" "}
+              journals={filteredEntries}
+              onDelete={() => router.refresh()}
+            />
           </JournalContainer>
 
           <ChartContainer>
@@ -274,13 +333,13 @@ export default function Dashboard() {
             <Pie data={categoryChartData} />
           </ChartContainer>
         </GridLayout>
-      </ContentArea>
 
-      {isRefreshing && (
-        <LoaderOverlay>
-          <Spinner />
-        </LoaderOverlay>
-      )}
+        {isRefreshing && (
+          <LoaderOverlay>
+            <Spinner />
+          </LoaderOverlay>
+        )}
+      </ContentArea>
     </DashboardContainer>
   );
 }

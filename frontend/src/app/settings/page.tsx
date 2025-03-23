@@ -6,7 +6,8 @@ import { gql, useMutation } from "@apollo/client";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Sidebar from "@/components/Sidebar";
 import { useRouter } from "next/navigation";
-import { useThemeContext } from "@/context/ThemeContext";
+// import { useThemeContext } from "@/context/ThemeContext";
+import ThemePreviewSwitcher from "@/components/ThemePreviewSwitcher";
 
 // ✅ GraphQL Mutation
 const CHANGE_PASSWORD = gql`
@@ -156,26 +157,26 @@ const ModalButton = styled.button`
   }
 `;
 
-const ThemeToggle = styled.div`
-  margin-top: 40px;
-  text-align: center;
-  color: ${({ theme }) => theme.textSecondary};
+// const ThemeToggle = styled.div`
+//   margin-top: 40px;
+//   text-align: center;
+//   color: ${({ theme }) => theme.textSecondary};
 
-  button {
-    background: #3b82f6;
-    color: white;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 10px;
+//   button {
+//     background: #3b82f6;
+//     color: white;
+//     border: none;
+//     padding: 8px 14px;
+//     border-radius: 6px;
+//     font-weight: bold;
+//     cursor: pointer;
+//     margin-top: 10px;
 
-    &:hover {
-      background: #2563eb;
-    }
-  }
-`;
+//     &:hover {
+//       background: #2563eb;
+//     }
+//   }
+// `;
 
 export default function SettingsPage() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -187,7 +188,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const [changePassword] = useMutation(CHANGE_PASSWORD);
 
-  const { theme, toggleTheme } = useThemeContext();
+  // const { theme, toggleTheme } = useThemeContext();
   const allRulesPassed = rules.every((rule) => rule.test(newPassword));
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -278,7 +279,7 @@ export default function SettingsPage() {
             </Button>
           </form>
 
-          <ThemeToggle>
+          {/* <ThemeToggle>
             <p>
               Current Theme: <strong>{theme}</strong>
             </p>
@@ -287,7 +288,8 @@ export default function SettingsPage() {
                 ? "Switch to Dark Mode"
                 : "Switch to Light Mode"}
             </button>
-          </ThemeToggle>
+          </ThemeToggle> */}
+          <ThemePreviewSwitcher />
         </Container>
 
         {showModal && (
