@@ -15,13 +15,14 @@
   _Implemented via `@nestjs/passport` and `bcrypt` for secure login._
 - **AI Integration**: Hugging Face Inference API  
   _Using free models like Mistral 7B and Falcon for text generation, with fallback._
+-  **GraphQL API**
 
 ### ✅ Frontend (User Interface Layer)
 - **Framework**: Next.js (App Router)  
   _Full-stack React framework with server rendering support._
 - **Language**: TypeScript  
   _Strongly typed frontend for robust code._
-- **Styling**: Tailwind CSS + Styled Components  
+- **Styling**: Styled Components  
   _For atomic styling and custom component theming._
 - **GraphQL Client**: Apollo Client  
   _Querying and mutating the GraphQL API from UI._
