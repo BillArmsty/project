@@ -46,7 +46,7 @@ input CreateUserInput {
   password: String!
 
   """Role of the user"""
-  role: String
+  role: Role
 }
 
 """
@@ -131,6 +131,7 @@ type Query {
   Analyze the time of day when journal entries are most frequently written
   """
   getTimeOfDayAnalysis: [TimeOfDayData!]!
+  getUsersWithJournals(includeEmpty: Boolean, skip: Int, take: Int): [UserEntity!]!
 
   """Fetch the most commonly used words in journal entries"""
   getWordTrends(limit: Int): [WordTrendData!]!
@@ -170,8 +171,8 @@ input UpdateJournalInput {
 type UserEntity {
   createdAt: DateTime!
   email: String!
+  entries: [JournalEntry!]
   id: String!
-  password: String!
   role: Role!
 }
 

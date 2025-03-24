@@ -7,15 +7,15 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserInput } from './dto/create-user.dto';
 import { UserEntity } from './entities/user.entity';
-import { Role } from '@prisma/client';
 import { ChangePasswordInput } from './dto/change-password.input';
 import * as bcrypt from 'bcrypt';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class UserService {
   constructor(private prismaService: PrismaService) {}
   async createUser(createUserInput: CreateUserInput) {
-    const { email, password } = createUserInput;
+    const { email, password, role } = createUserInput;
 
     const existingUser = await this.prismaService.user.findUnique({
       where: {
@@ -30,6 +30,7 @@ export class UserService {
       data: {
         email,
         password,
+        role,
       },
     });
 
@@ -40,14 +41,59 @@ export class UserService {
     return this.prismaService.user.findMany();
   }
 
+  async findUsersWithJournalsOnly({ take, skip }): Promise<UserEntity[]> {
+    return this.prismaService.user.findMany({
+      where: {
+        entries: {
+          some: {},
+        },
+      },
+      include: {
+        entries: true,
+      },
+      take,
+      skip,
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+
+  async findUsers({
+    take,
+    skip,
+    includeEmpty = false,
+  }: {
+    take?: number;
+    skip?: number;
+    includeEmpty?: boolean;
+  }) {
+    return this.prismaService.user.findMany({
+      where: includeEmpty
+        ? {}
+        : {
+            entries: {
+              some: {}, 
+            },
+          },
+      include: {
+        entries: true,
+      },
+      take,
+      skip,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+  
   async findById(id: string) {
     const user = await this.prismaService.user.findUnique({
       where: { id },
       select: {
         id: true,
         email: true,
-        password: true,
         createdAt: true,
+        role: true,
       },
     });
     if (!user) throw new BadRequestException(`User with ID #${id} not found`);

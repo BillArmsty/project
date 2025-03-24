@@ -1,4 +1,4 @@
-import { Resolver, Mutation, Args, Query, Context } from '@nestjs/graphql';
+import { Resolver, Mutation, Args, Query, Context, Int } from '@nestjs/graphql';
 import { UserService } from './users.service';
 import { UserEntity } from './entities/user.entity';
 import { CreateUserInput } from './dto/create-user.dto';
@@ -54,9 +54,23 @@ export class UserResolver {
 
   @Query(() => [UserEntity])
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
   getAllUsers(): Promise<UserEntity[]> {
     return this.userService.findAll();
+  }
+
+  @Query(() => [UserEntity])
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  async getUsersWithJournals(
+    @Args('take', { type: () => Int, nullable: true }) take?: number,
+    @Args('skip', { type: () => Int, nullable: true }) skip?: number,
+    @Args('includeEmpty', { type: () => Boolean, nullable: true }) includeEmpty = false,
+  ): Promise<UserEntity[]> {
+    return this.userService.findUsers({
+      take,
+      skip,
+      includeEmpty,
+    });
   }
 
   @Query(() => UserEntity)
@@ -67,6 +81,7 @@ export class UserResolver {
 
   @Mutation(() => UserEntity)
   @UseGuards(JwtAuthGuard)
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
   async removeUser(@Args('email') email: string) {
     return this.userService.remove(email);
   }

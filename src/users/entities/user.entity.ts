@@ -1,5 +1,6 @@
 import { Role, User } from '@prisma/client';
 import { ObjectType, Field, registerEnumType } from '@nestjs/graphql';
+import { JournalEntry } from 'src/journal/entities/journal.entity';
 
 registerEnumType(Role, {
   name: 'Role',
@@ -17,7 +18,10 @@ export class UserEntity implements User {
   @Field(() => Role)
   role: Role;
 
-  @Field()
+  @Field(() => [JournalEntry], { nullable: true })
+  entries?: JournalEntry[];
+
+
   password: string;
 
   @Field()
