@@ -5,8 +5,7 @@ import { Line, Pie } from "react-chartjs-2";
 import ReactCalendarHeatmap from "react-calendar-heatmap";
 import "react-calendar-heatmap/dist/styles.css";
 import styled from "styled-components";
-import { useRouter } from "next/navigation";
-import Sidebar from "../../../components/Sidebar";
+// import { useRouter } from "next/navigation";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -21,7 +20,7 @@ import {
   ChartOptions,
 } from "chart.js";
 import "chartjs-adapter-date-fns";
-import { FaHome } from "react-icons/fa";
+// import { FaHome } from "react-icons/fa";
 
 ChartJS.register(
   ArcElement,
@@ -64,30 +63,7 @@ const ContentArea = styled.div`
   align-items: center;
 `;
 
-const TopBar = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px;
-  background: ${({ theme }) => theme.background};
-  border-radius: 8px;
-  width: 100%;
-`;
 
-const HomeButton = styled.button`
-  background: ${({ theme }) => theme.background};
-  border: none;
-  color: ${({ theme }) => theme.text};
-  font-size: 1.2rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  &:hover {
-    color: #007bff;
-  }
-`;
 
 const Container = styled.div`
   max-width: 900px;
@@ -132,7 +108,7 @@ interface JournalEntry {
 
 export default function Analytics() {
   const { data, loading, error } = useQuery(GET_JOURNAL_ENTRIES);
-  const router = useRouter();
+  // const router = useRouter();
 
   if (loading) return <p>Loading analytics...</p>;
   if (error || !data) return <p>Error fetching journal analytics.</p>;
@@ -237,15 +213,9 @@ export default function Analytics() {
     },
   };
   return (
-    <AnalyticsContainer>
-      <Sidebar />
+     <AnalyticsContainer>
       <ContentArea>
-        {/* 🔝 Top Navigation Bar */}
-        <TopBar>
-          <HomeButton onClick={() => router.push("/")}>
-            <FaHome /> Journify Home
-          </HomeButton>
-        </TopBar>
+       
 
         <Container>
           <AnalyticsTitle>📊 Journal Analytics</AnalyticsTitle>

@@ -20,6 +20,7 @@ const REGISTER_MUTATION = gql`
       user {
         id
         email
+        role
       }
     }
   }
@@ -32,6 +33,7 @@ const LOGIN_MUTATION = gql`
       user {
         id
         email
+        role
       }
     }
   }
@@ -222,19 +224,28 @@ export default function LoginRegisterModal({ isOpen, onClose }: ModalProps) {
 
     try {
       let token = "";
+      let userRole = "";
 
       if (isLogin) {
         const { data } = await login({ variables: { email, password } });
         token = data?.login?.access_token;
+        userRole = data?.login?.user?.role;
       } else {
         const { data } = await register({ variables: { email, password } });
         token = data?.register?.access_token;
+        userRole = data?.register?.user?.role;
       }
 
-      if (token) {
+      if (token && userRole) {
         localStorage.setItem("token", token);
         onClose();
-        router.push("/dashboard");
+
+        // ✅ Role-based routing
+        if (userRole === "ADMIN" || userRole === "SUPERADMIN") {
+          router.push("/admin");
+        } else {
+          router.push("/dashboard");
+        }
       }
     } catch (err) {
       console.error(err);

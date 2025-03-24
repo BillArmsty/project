@@ -1,94 +1,122 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import styled from "styled-components";
-import { useState } from "react";
 import {
   FaHome,
   FaBook,
   FaChartBar,
   FaCog,
-  FaBars,
-  FaTimes,
+  FaLock,
+  FaSignOutAlt,
 } from "react-icons/fa";
+import { getRoleFromToken } from "@/utils/auth";
+import { useEffect, useState } from "react";
 
-const SidebarContainer = styled.div<{ $collapsed: boolean }>`
-  width: ${(props) => (props.$collapsed ? "60px" : "200px")};
-  background: ${({ theme }) => theme.background};
-  color: ${({ theme }) => theme.text};
-  transition: width 0.3s ease;
+// interface SidebarProps {
+//   userRole: string | null;
+// }
+
+
+const SidebarContainer = styled.aside`
+  width: 240px;
+  background: ${({ theme }) => theme.card};
+  padding: 20px;
   height: 100vh;
+  position: fixed;
   display: flex;
   flex-direction: column;
-  position: relative;
 `;
 
-const ToggleButton = styled.button`
-  background: none;
-  border: none;
-  color: ${({ theme }) => theme.text};
+const Logo = styled.h1`
   font-size: 1.4rem;
-  cursor: pointer;
-  padding: 16px;
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 1;
+  margin-bottom: 30px;
+  color: ${({ theme }) => theme.text};
 `;
 
-const NavItem = styled.button`
+const NavItem = styled(Link)<{ $active?: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  color: ${({ theme, $active }) => ($active ? theme.primary : theme.text)};
+  text-decoration: none;
+  font-weight: ${({ $active }) => ($active ? "bold" : "normal")};
+
+  &:hover {
+    color: ${({ theme }) => theme.primary};
+  }
+`;
+// const Spacer = styled.div`
+//   flex-grow: 1;
+// `;
+
+const LogoutButton = styled.button`
   display: flex;
   align-items: center;
   gap: 10px;
   background: none;
   border: none;
   color: ${({ theme }) => theme.text};
-  font-size: 1rem;
-  padding: 14px 20px;
   cursor: pointer;
-  text-align: left;
-  width: 100%;
+  font-size: 1rem;
 
   &:hover {
-    background: ${({ theme }) => theme.cardHover};
+    color: ${({ theme }) => theme.primary};
   }
+`;
+const TopSection = styled.div`
+  display: flex;
+  flex-direction: column;
 `;
 
 export default function Sidebar() {
-  const router = useRouter();
-  const [collapsed, setCollapsed] = useState(false);
+  const pathname = usePathname();
+  const [role, setRole] = useState<string | null>(null);
 
-  const handleNav = (path: string) => {
-    router.push(path);
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      const userRole = getRoleFromToken();
+      console.log("User role from token:", userRole);
+      setRole(userRole);
+    }, 100); // give the token a moment to be set
+
+    return () => clearTimeout(delay);
+  }, []);
+
+  const handleLogout = () => {
+    document.cookie = "token=; path=/; max-age=0;";
+    window.location.href = "/login";
   };
 
   return (
-    <SidebarContainer $collapsed={collapsed}>
-      <ToggleButton onClick={() => setCollapsed((prev) => !prev)}>
-        {collapsed ? <FaBars /> : <FaTimes />}
-      </ToggleButton>
+    <SidebarContainer>
+       <TopSection>
+      <Logo>Journify</Logo>
+      <NavItem href="/" $active={pathname === "/"}>
+        <FaHome /> Home
+      </NavItem>
+      <NavItem href="/dashboard" $active={pathname === "/dashboard"}>
+        <FaBook /> My Journals
+      </NavItem>
+      <NavItem href="/analytics" $active={pathname === "/analytics"}>
+        <FaChartBar /> Analytics
+      </NavItem>
+      <NavItem href="/settings" $active={pathname === "/settings"}>
+        <FaCog /> Settings
+      </NavItem>
 
-      <div style={{ marginTop: "60px" }}>
-        <NavItem onClick={() => handleNav("/")}>
-          <FaHome />
-          {!collapsed && "Home"}
-        </NavItem>
+      {role && (role === "ADMIN" || role === "SUPERADMIN") && (
+          <NavItem href="/admin" $active={pathname?.startsWith("/admin")}>
+            <FaLock /> Admin
+          </NavItem>
+            )}
 
-        <NavItem onClick={() => handleNav("/dashboard")}>
-          <FaBook />
-          {!collapsed && "My Journals"}
-        </NavItem>
-
-        <NavItem onClick={() => handleNav("/dashboard/analytics")}>
-          <FaChartBar />
-          {!collapsed && "Analytics"}
-        </NavItem>
-
-        <NavItem onClick={() => handleNav("/settings")}>
-          <FaCog />
-          {!collapsed && "Settings"}
-        </NavItem>
-      </div>
+      </TopSection>
+      <LogoutButton onClick={handleLogout}>
+        <FaSignOutAlt /> Logout
+      </LogoutButton>
     </SidebarContainer>
   );
 }

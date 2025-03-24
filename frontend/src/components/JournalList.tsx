@@ -263,13 +263,15 @@ export default function JournalList({
     try {
       await deleteJournal({ variables: { id: selectedJournalId } });
       toast.success("Journal deleted successfully!");
-      onDelete(); // 🔁 Triggers dashboard refresh
+      onDelete();
+      
     } catch (error) {
       console.error("Delete failed:", error);
       toast.error("Delete failed.");
     } finally {
       setIsDeleting(false);
       closeModal();
+      window.location.reload();
     }
   };
 
