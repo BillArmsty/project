@@ -24,14 +24,25 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
     const isActivated = super.canActivate(context);
     this.logger.log(`Guard activated. User should be attached to request.`);
-    return isActivated;
+    return super.canActivate(context);
+  }
+
+  handleRequest(err: any, user: any, info: any) {
+    this.logger.log('🛡️🛡️🛡️🛡️🛡️🛡️Validating JWT...🛡️🛡️🛡️🛡️🛡️🛡️🛡️');
+
+    if (err || !user) {
+      this.logger.error('❌❌❌❌❌ Authentication failed❌❌❌❌❌', err || info);
+      return null;
+    }
+
+    this.logger.log(`✅✅✅✅✅Authenticated user: ${JSON.stringify(user)}✅✅✅✅✅`);
+    return user;
   }
 
   getRequest(context: ExecutionContext) {
     const ctx = GqlExecutionContext.create(context);
     const req = ctx.getContext().req;
-    this.logger.log(`User in getRequest: ${JSON.stringify(req.user)}`);
+    this.logger.debug(`Request cookies: ${JSON.stringify(req.cookies)}`);
     return req;
   }
 }
-

@@ -1,5 +1,5 @@
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
-import { UseGuards } from '@nestjs/common';
+import { UnauthorizedException, UseGuards } from '@nestjs/common';
 import { JournalService } from './journal.service';
 import {
   CategoryDistributionData,
@@ -74,6 +74,9 @@ export class JournalResolver {
     @Args('page', { type: () => Int, nullable: true }) page: number = 1,
     @Args('limit', { type: () => Int, nullable: true }) limit: number = 10,
   ): Promise<JournalEntry[]> {
+    if (!user?.id) {
+      throw new UnauthorizedException('No user found in request');
+    }
     return this.journalService.findAll(user.id, page, limit);
   }
 

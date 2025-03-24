@@ -81,6 +81,7 @@ input LoginRequestDTO {
 
 type LoginResponseDTO {
   access_token: String!
+  refresh_token: String!
   user: UserEntity!
 }
 
@@ -95,9 +96,10 @@ type Mutation {
 
   """Delete a journal entry"""
   deleteJournalEntry(id: String!): Boolean!
-
-  """Authenticate a user and return an access token."""
   login(loginInput: LoginRequestDTO!): LoginResponseDTO!
+
+  """Refresh the access token using refresh token from cookie."""
+  refreshToken: LoginResponseDTO!
 
   """Register a new user and return an access token."""
   register(registerInput: RegisterRequestDTO!): RegisterResponseDTO!

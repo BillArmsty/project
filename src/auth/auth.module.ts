@@ -8,6 +8,7 @@ import { JwtStrategy } from './strategy/jwt.strategy';
 import { UserModule } from '../users/users.module';
 import { JwtAuthGuard } from './guards/jwt.guard';
 import { RolesGuard } from './guards/roles.guard';
+import { AuthController } from './auth.controller';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { RolesGuard } from './guards/roles.guard';
       inject: [ConfigService],
     }),
   ],
+  controllers: [AuthController],
   providers: [AuthService, JwtAuthGuard, JwtStrategy, RolesGuard],
   exports: [AuthService, JwtModule],
 })

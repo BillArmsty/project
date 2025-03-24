@@ -2,6 +2,7 @@ import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { JwtAuthGuard } from './auth/guards/jwt.guard';
 import { Logger, ValidationPipe } from '@nestjs/common';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -23,10 +24,11 @@ async function bootstrap() {
   const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector));
 
+  app.use(cookieParser());
 
   app.enableCors({
-    origin: "http://localhost:3000", 
-    credentials: true, 
+    origin: 'http://localhost:3000',
+    credentials: true,
   });
 
   // Log each incoming request for debugging

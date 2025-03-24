@@ -52,10 +52,15 @@ export class AuthService {
       loginInput.password,
     );
 
-    const payload = { email: user.email, sub: user.id , role: user.role};
+    const payload = { email: user.email, sub: user.id, role: user.role };
+    const refresh_token = this.jwtService.sign(payload, {
+      expiresIn: '7d',
+    });
 
     return {
       access_token: this.jwtService.sign(payload),
+      refresh_token,
+
       user: {
         id: user.id,
         email: user.email,
@@ -87,7 +92,7 @@ export class AuthService {
     const newUser = await this.userService.createUser({
       email: registerData.email,
       password: hashedPassword,
-      role: registerData.role  || Role.USER,
+      role: registerData.role || Role.USER,
     });
 
     // Generate a JWT token for the new user
@@ -105,5 +110,37 @@ export class AuthService {
         createdAt: newUser.createdAt,
       },
     };
+  }
+
+  async validateRefreshToken(token: string): Promise<LoginResponseDTO> {
+    try {
+      const payload = this.jwtService.verify(token);
+      const user = await this.userService.findById(payload.sub);
+
+      if (!user) throw new Error('User not found');
+
+      const newPayload = { email: user.email, sub: user.id, role: user.role };
+
+      const access_token = this.jwtService.sign(newPayload, {
+        expiresIn: '15m',
+      });
+
+      const refresh_token = this.jwtService.sign(newPayload, {
+        expiresIn: '7d',
+      });
+
+      return {
+        access_token,
+        refresh_token,
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          createdAt: user.createdAt,
+        },
+      };
+    } catch (e) {
+      throw new Error('Invalid refresh token');
+    }
   }
 }

@@ -34,6 +34,8 @@ import { AiModule } from './ai/ai.module';
       playground: false,
       sortSchema: true,
       plugins: [ApolloServerPluginLandingPageLocalDefault()],
+      context: ({ req, res }) => ({ req, res }),
+      path: '/graphql',
     }),
     AuthModule,
     JournalModule,

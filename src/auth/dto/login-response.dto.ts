@@ -8,4 +8,7 @@ export class LoginResponseDTO implements AccessToken {
   access_token: string;
   @Field(() => UserEntity)
   user: Partial<UserEntity>;
+
+  @Field()
+  refresh_token: string;
 }
