@@ -237,7 +237,6 @@ export default function LoginRegisterModal({ isOpen, onClose }: ModalProps) {
       }
 
       if (token && userRole) {
-        localStorage.setItem("token", token);
         onClose();
 
         // ✅ Role-based routing

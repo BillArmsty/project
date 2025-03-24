@@ -199,7 +199,6 @@ export default function LoginPage() {
         });
 
         if (data?.login?.access_token) {
-          localStorage.setItem("token", data.login.access_token);
           toast.success("Login successful!");
           router.push("/dashboard");
         }

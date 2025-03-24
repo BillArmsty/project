@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import {
   FaHome,
   FaBook,
@@ -11,13 +11,18 @@ import {
   FaLock,
   FaSignOutAlt,
 } from "react-icons/fa";
-import { getRoleFromToken } from "@/utils/auth";
-import { useEffect, useState } from "react";
+import { IconContext } from "react-icons/lib";
+import { gql, useQuery } from "@apollo/client";
 
-// interface SidebarProps {
-//   userRole: string | null;
-// }
-
+const WHO_AM_I = gql`
+  query WhoAmI {
+    whoAmI {
+      id
+      email
+      role
+    }
+  }
+`;
 
 const SidebarContainer = styled.aside`
   width: 240px;
@@ -48,9 +53,6 @@ const NavItem = styled(Link)<{ $active?: boolean }>`
     color: ${({ theme }) => theme.primary};
   }
 `;
-// const Spacer = styled.div`
-//   flex-grow: 1;
-// `;
 
 const LogoutButton = styled.button`
   display: flex;
@@ -66,57 +68,90 @@ const LogoutButton = styled.button`
     color: ${({ theme }) => theme.primary};
   }
 `;
+
 const TopSection = styled.div`
   display: flex;
   flex-direction: column;
 `;
 
+const spin = keyframes`
+  to {
+    transform: rotate(360deg);
+  }
+`;
+
+const SpinnerWrapper = styled.div`
+  position: fixed;
+  inset: 0;
+  background: ${({ theme }) => theme.background};
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+`;
+
+const Spinner = styled.div`
+  width: 45px;
+  height: 45px;
+  border: 4px solid ${({ theme }) => theme.primary};
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: ${spin} 0.8s linear infinite;
+`;
+
 export default function Sidebar() {
   const pathname = usePathname();
-  const [role, setRole] = useState<string | null>(null);
+  const { data, loading, error } = useQuery(WHO_AM_I);
 
-  useEffect(() => {
-    const delay = setTimeout(() => {
-      const userRole = getRoleFromToken();
-      console.log("User role from token:", userRole);
-      setRole(userRole);
-    }, 100); // give the token a moment to be set
-
-    return () => clearTimeout(delay);
-  }, []);
+  const role = data?.whoAmI?.role;
 
   const handleLogout = () => {
     document.cookie = "token=; path=/; max-age=0;";
-    window.location.href = "/login";
+    document.cookie = "refresh_token=; path=/; max-age=0;";
+    window.location.href = "/";
   };
 
+  if (loading) {
+    return (
+      <SpinnerWrapper>
+        <Spinner />
+      </SpinnerWrapper>
+    );
+  }
+
+  if (error || !role) {
+    return null; 
+  }
+
   return (
-    <SidebarContainer>
-       <TopSection>
-      <Logo>Journify</Logo>
-      <NavItem href="/" $active={pathname === "/"}>
-        <FaHome /> Home
-      </NavItem>
-      <NavItem href="/dashboard" $active={pathname === "/dashboard"}>
-        <FaBook /> My Journals
-      </NavItem>
-      <NavItem href="/analytics" $active={pathname === "/analytics"}>
-        <FaChartBar /> Analytics
-      </NavItem>
-      <NavItem href="/settings" $active={pathname === "/settings"}>
-        <FaCog /> Settings
-      </NavItem>
-
-      {role && (role === "ADMIN" || role === "SUPERADMIN") && (
-          <NavItem href="/admin" $active={pathname?.startsWith("/admin")}>
-            <FaLock /> Admin
+    <IconContext.Provider value={{ style: { verticalAlign: "middle" } }}>
+      <SidebarContainer>
+        <TopSection>
+          <Logo>Journify</Logo>
+          <NavItem href="/" $active={pathname === "/"}>
+            <FaHome /> Home
           </NavItem>
-            )}
+          <NavItem href="/dashboard" $active={pathname === "/dashboard"}>
+            <FaBook /> My Journals
+          </NavItem>
+          <NavItem href="/analytics" $active={pathname === "/analytics"}>
+            <FaChartBar /> Analytics
+          </NavItem>
+          <NavItem href="/settings" $active={pathname === "/settings"}>
+            <FaCog /> Settings
+          </NavItem>
 
-      </TopSection>
-      <LogoutButton onClick={handleLogout}>
-        <FaSignOutAlt /> Logout
-      </LogoutButton>
-    </SidebarContainer>
+          {(role === "ADMIN" || role === "SUPERADMIN") && (
+            <NavItem href="/admin" $active={pathname === "/admin"}>
+              <FaLock /> Admin
+            </NavItem>
+          )}
+        </TopSection>
+        <LogoutButton onClick={handleLogout}>
+          <FaSignOutAlt /> Logout
+        </LogoutButton>
+      </SidebarContainer>
+    </IconContext.Provider>
   );
 }

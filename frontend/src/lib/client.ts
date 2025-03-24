@@ -1,51 +1,56 @@
 "use client";
 
-import { useMemo } from "react";
-import { setContext } from "@apollo/client/link/context";
 import {
   ApolloClient,
+  ApolloLink,
   HttpLink,
   InMemoryCache,
-  NormalizedCacheObject,
 } from "@apollo/client";
+import { TokenRefreshLink } from "apollo-link-token-refresh";
+import { setAccessToken, getAccessToken, isTokenExpired } from '../utils/token';
 
 /**
  * Create Apollo Client with a single HTTP link and authorization header
  * @param token - Authentication token, if available
  * @returns ApolloClient
  */
-export function createApolloClient(token: string) {
-  const httpLink = new HttpLink({
-    uri: process.env.NEXT_PUBLIC_GRAPHQL_API!,
-    credentials: "include",
-  });
+const httpLink = new HttpLink({
+  uri: process.env.NEXT_PUBLIC_GRAPHQL_API,
+  credentials: "include",
+});
 
-  const authLink = setContext((_req, { headers }) => ({
-    headers: {
-      ...headers,
-      authorization: token ? `Bearer ${token}` : "",
-    },
-  }));
+// ✅ Refresh token logic
+const refreshLink = new TokenRefreshLink({
+  accessTokenField: "access_token",
+  isTokenValidOrUndefined: async () => {
+    const token = getAccessToken();
+    return !token || !isTokenExpired();
+  },
+  fetchAccessToken: () => {
+    return fetch(`${process.env.NEXT_PUBLIC_GRAPHQL_API!.replace("/graphql", "")}/auth/refresh-token`, {
+      method: "GET",
+      credentials: "include",
+    });
+  },
+  handleFetch: (newAccessToken) => {
+    setAccessToken(newAccessToken);
+  },
+  handleError: (err) => {
+    console.warn("Failed to refresh token", err);
+  },
+});
 
-  return new ApolloClient({
-    ssrMode: false,
-    link: authLink.concat(httpLink),
-    cache: new InMemoryCache(),
-  });
-}
+ const client = new ApolloClient({
+  link: ApolloLink.from([refreshLink, httpLink]),
+  cache: new InMemoryCache(),
+  defaultOptions: {
+    watchQuery: { fetchPolicy: "no-cache", nextFetchPolicy: "no-cache" },
+    query: { fetchPolicy: "no-cache" },
+    mutate: { fetchPolicy: "no-cache" },
+  },
+  ssrMode: false,
+});
 
-/**
- * React Hook to create Apollo Client with a token
- * @param token - Optional authentication token
- * @returns Apollo Client instance
- */
-export function useApollo(token?: string): ApolloClient<NormalizedCacheObject> {
-  const authToken = useMemo(() => {
-    if (typeof window !== "undefined") {
-      return token || localStorage.getItem("token") || "";
-    }
-    return token || ""; // Ensure a fallback value during SSR
-  }, [token]);
 
-  return useMemo(() => createApolloClient(authToken), [authToken]);
-}
+export default client;
+
