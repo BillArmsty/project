@@ -5,6 +5,7 @@ import { gql, useQuery, useMutation } from "@apollo/client";
 import { useParams, useRouter } from "next/navigation";
 import styled, { createGlobalStyle } from "styled-components";
 import TagInput from "@/components/Tag";
+// import { Tag } from "react-tag-input";
 
 // ✅ GraphQL
 const GET_JOURNAL_ENTRY = gql`
@@ -157,9 +158,13 @@ export default function EditJournal() {
       setTitle(entry.title);
       setContent(entry.content);
       setCategory(entry.category);
-      setTags(entry.tags || []);
+      setTags(entry.tags ?? []);
     }
   }, [data]);
+
+  useEffect(() => {
+    console.log("📝 Tags (Edit):", tags);
+  }, [tags]);
 
   const [updateJournalEntry] = useMutation(UPDATE_JOURNAL_ENTRY);
   const [analyzeJournal, { loading: analyzing }] = useMutation(ANALYZE_JOURNAL);
@@ -171,7 +176,13 @@ export default function EditJournal() {
     try {
       await updateJournalEntry({
         variables: {
-          data: { id, title, content, category, tags },
+          data: {
+            id,
+            title,
+            content,
+            category,
+            tags,
+          },
         },
       });
       router.push("/dashboard");

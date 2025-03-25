@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { gql, useMutation } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import TagInput from "@/components/Tag";
+// import { Tag } from "react-tag-input";
 
 // ✅ Create Journal Mutation
 const CREATE_JOURNAL = gql`
@@ -120,8 +121,22 @@ export default function CreateJournal() {
   const [createJournalEntry] = useMutation(CREATE_JOURNAL);
   const [analyzeJournal] = useMutation(ANALYZE_JOURNAL);
 
+  useEffect(() => {
+    console.log("🧠 Tags (Create):", tags);
+  }, [tags]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // const plainTags = tags.map((t) => t.text);
+
+    console.log("Creating journal with data:", {
+      title,
+      content,
+      category,
+      tags,
+    });
+
     try {
       await createJournalEntry({
         variables: {

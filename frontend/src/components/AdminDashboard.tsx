@@ -39,11 +39,14 @@ const DELETE_JOURNAL = gql`
   }
 `;
 
-const DELETE_USER = gql`
-  mutation DeleteUser($id: String!) {
-    deleteUser(id: $id)
+const REMOVE_USER = gql`
+  mutation RemoveUser($id: String!) {
+    removeUser(id: $id) {
+      id
+    }
   }
 `;
+
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function AdminDashboard() {
@@ -58,7 +61,7 @@ export default function AdminDashboard() {
 
   const [updateUserRole] = useMutation(UPDATE_ROLE);
   const [deleteJournal] = useMutation(DELETE_JOURNAL);
-  const [deleteUser] = useMutation(DELETE_USER);
+  const [deleteUser] = useMutation(REMOVE_USER);
 
   const handleRoleChange = async (userId: string, newRole: Role) => {
     await updateUserRole({ variables: { userId, newRole } });
@@ -138,6 +141,7 @@ export default function AdminDashboard() {
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
         isOpen={!!deleteTargetUserId}
+        title="Are you sure you want to delete this user?"
         onCancel={() => setDeleteTargetUserId(null)}
         onConfirm={confirmDeleteUser}
       />
