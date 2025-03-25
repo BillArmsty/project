@@ -33,6 +33,62 @@
 
 ## 🏗️ Architecture Overview
 ```
+
++---------------------+       +---------------------+       +---------------------+
+|                     |       |                     |       |                     |
+|     PostgreSQL      |       |    Hugging Face     |       |      NextAuth.js    |
+|     Database        |       |    AI Service       |       |   Authentication    |
+|                     |       |                     |       |                     |
++---------------------+       +---------------------+       +---------------------+
+           ^                           ^                           ^
+           |                           |                           |
+           |                           |                           |
+           v                           v                           v
++---------------------+       +---------------------+       +---------------------+
+|                     |       |                     |       |                     |
+|       Prisma        |       |    REST API for     |       |   JWT Strategy &    |
+|       ORM           |       |    AI Analysis      |       |   Role Guards       |
+|                     |       |                     |       |                     |
++---------------------+       +---------------------+       +---------------------+
+           ^                           ^                           ^
+           |                           |                           |
+           |                           |                           |
+           v                           v                           v
++-----------------------------------------------------------------+
+|                                                                 |
+|                          NestJS Backend                         |
+|                                                                 |
+|  - GraphQL API for Journaling Operations                        |
+|  - REST API for AI Analysis and Token Refresh                   |
+|  - Authentication and Authorization                             |
+|                                                                 |
++-----------------------------------------------------------------+
+                                  ^
+                                  |
+                                  |
+                                  v
++-----------------------------------------------------------------+
+|                                                                 |
+|                         Next.js Frontend                        |
+|                                                                 |
+|  - User Interface for Journal Management                        |
+|  - Authentication Handling with NextAuth.js                     |
+|  - GraphQL Client for Data Fetching                             |
+|                                                                 |
++-----------------------------------------------------------------+
+
+
+## 📦 Monorepo Architecture
+
+The project is structured as a monorepo:
+
+```
+monorepo/
+├── backend/       # NestJS GraphQL API
+└── frontend/      # Next.js 15 App Router Client
+
+
+
 📦 backend/
 ├── src/
 │   ├── journal/          # CRUD operations for journals
