@@ -208,6 +208,5 @@ enum Category {
 | Tagging System             | ✅ Done       |
 | AI Suggestion (HuggingFace)| ✅ Done       |
 | Loading UX                 | ✅ Done       |
-| Sentiment Detection (AI)   | 🔜 Optional   |
 
 ---
