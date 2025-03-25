@@ -18,7 +18,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     ]);
 
     if (isPublic) {
-      this.logger.log('Public route accessed');
+      this.logger.log('🪵Public route accessed');
       return true;
     }
 
@@ -28,14 +28,14 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   handleRequest(err: any, user: any, info: any) {
-    this.logger.log('🛡️🛡️🛡️🛡️🛡️🛡️Validating JWT...🛡️🛡️🛡️🛡️🛡️🛡️🛡️');
+    this.logger.log('🛡️Validating JWT...🛡️');
 
     if (err || !user) {
-      this.logger.error('❌❌❌❌❌ Authentication failed❌❌❌❌❌', err || info);
+      this.logger.error('❌ Authentication failed❌', err || info);
       return null;
     }
 
-    this.logger.log(`✅✅✅✅✅Authenticated user: ${JSON.stringify(user)}✅✅✅✅✅`);
+    this.logger.log(`✅Authenticated user: ${JSON.stringify(user)}✅`);
     return user;
   }
 

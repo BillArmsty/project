@@ -191,26 +191,17 @@ export class JournalService {
   ): Promise<JournalEntry> {
     const entry = await this.findOne(data.id, userId);
 
-    let tagUpdates = {};
-    if (data.tags) {
-      const connectOrCreateTags = data.tags.map((name) => ({
-        where: { name },
-        create: { name },
-      }));
-
-      tagUpdates = {
-        tags: {
-          set: [],
-          connectOrCreate: connectOrCreateTags,
-        },
-      };
-    }
+    const tagsToConnect = data.tags?.map((name) => ({
+      where: { name },
+      create: { name },
+    }));
 
     const updatedEntry = await this.prismaService.journalEntry.update({
       where: { id: entry.id },
       data: {
-        ...data,
-        ...tagUpdates,
+        title: data.title,
+        content: data.content,
+        category: data.category,
         tags: data.tags
           ? {
               set: [],
@@ -221,14 +212,17 @@ export class JournalService {
             }
           : undefined,
       },
-      include: { tags: true },
+      include: {
+        tags: true,
+      },
     });
 
     return {
       ...updatedEntry,
-      tags: updatedEntry.tags.map((tag: { name: any }) => tag.name),
+      tags: updatedEntry.tags.map((tag) => tag.name),
     };
   }
+
   /**
    * Analyze word trends from journal entries.
    * @param userId - The ID of the user whose journal entries are analyzed.
