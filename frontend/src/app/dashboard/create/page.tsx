@@ -4,6 +4,7 @@ import { useState } from "react";
 import styled from "styled-components";
 import { gql, useMutation } from "@apollo/client";
 import { useRouter } from "next/navigation";
+import TagInput from "@/components/Tag";
 
 // ✅ Create Journal Mutation
 const CREATE_JOURNAL = gql`
@@ -114,6 +115,7 @@ export default function CreateJournal() {
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("OTHER");
   const [loadingAI, setLoadingAI] = useState(false);
+  const [tags, setTags] = useState<string[]>([]);
 
   const [createJournalEntry] = useMutation(CREATE_JOURNAL);
   const [analyzeJournal] = useMutation(ANALYZE_JOURNAL);
@@ -123,7 +125,7 @@ export default function CreateJournal() {
     try {
       await createJournalEntry({
         variables: {
-          data: { title, content, category },
+          data: { title, content, category, tags },
         },
       });
       router.push("/dashboard");
@@ -180,6 +182,10 @@ export default function CreateJournal() {
             </CategoryBubble>
           ))}
         </CategoryContainer>
+        <>
+          <label>Tags</label>
+          <TagInput tags={tags} setTags={setTags} />
+        </>
 
         <ButtonGroup>
           <SaveButton type="submit">Save Journal</SaveButton>

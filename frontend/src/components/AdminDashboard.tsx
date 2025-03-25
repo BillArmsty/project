@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import styled from "styled-components";
-import {User, Role, JournalEntry } from "@/types"; 
+import { User, Role, JournalEntry } from "@/types";
+import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
+// ─── GraphQL ──────────────────────────────────────────────────────────────────
 const GET_USERS = gql`
   query GetUsers($includeEmpty: Boolean) {
     getUsersWithJournals(includeEmpty: $includeEmpty) {
@@ -37,14 +39,26 @@ const DELETE_JOURNAL = gql`
   }
 `;
 
+const DELETE_USER = gql`
+  mutation DeleteUser($id: String!) {
+    deleteUser(id: $id)
+  }
+`;
+
+// ─── Component ────────────────────────────────────────────────────────────────
 export default function AdminDashboard() {
   const [includeEmpty, setIncludeEmpty] = useState(true);
+  const [deleteTargetUserId, setDeleteTargetUserId] = useState<string | null>(
+    null
+  );
+
   const { data, loading, error, refetch } = useQuery(GET_USERS, {
     variables: { includeEmpty },
   });
 
   const [updateUserRole] = useMutation(UPDATE_ROLE);
   const [deleteJournal] = useMutation(DELETE_JOURNAL);
+  const [deleteUser] = useMutation(DELETE_USER);
 
   const handleRoleChange = async (userId: string, newRole: Role) => {
     await updateUserRole({ variables: { userId, newRole } });
@@ -56,122 +70,155 @@ export default function AdminDashboard() {
     refetch();
   };
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error loading users.</p>;
+  const confirmDeleteUser = async () => {
+    if (!deleteTargetUserId) return;
+    await deleteUser({ variables: { id: deleteTargetUserId } });
+    setDeleteTargetUserId(null);
+    refetch();
+  };
+
+  if (loading) return <LoadingMsg>Loading...</LoadingMsg>;
+  if (error) return <ErrorMsg>Error loading users.</ErrorMsg>;
 
   return (
     <Wrapper>
-      <Content>
-        <Header>
-          <h1>Admin Dashboard</h1>
-          <ToggleButton onClick={() => {
+      <Header>
+        <h1>🛠️ Admin Dashboard</h1>
+        <ToggleButton
+          onClick={() => {
             setIncludeEmpty((prev) => !prev);
             setTimeout(() => refetch({ includeEmpty: !includeEmpty }), 250);
-          }}>
-            {includeEmpty ? "Show Only Users With Journals" : "View All Users"}
-          </ToggleButton>
-        </Header>
+          }}
+        >
+          {includeEmpty ? "Show Only Users With Journals" : "View All Users"}
+        </ToggleButton>
+      </Header>
 
-        <UserGrid>
-          {data?.getUsersWithJournals.map((user: User) => (
-            <UserCard key={user.id}>
-              <strong>{user.email}</strong>
-              <p>
-                Role:
+      <UserGrid>
+        {data?.getUsersWithJournals.map((user: User) => (
+          <UserCard key={user.id}>
+            <UserHeader>
+              <UserEmail>{user.email}</UserEmail>
+              <div>
                 <RoleSelect
                   value={user.role}
-                  onChange={(e) => handleRoleChange(user.id, e.target.value as Role)}
+                  onChange={(e) =>
+                    handleRoleChange(user.id, e.target.value as Role)
+                  }
                 >
                   <option value="USER">USER</option>
                   <option value="ADMIN">ADMIN</option>
                   <option value="SUPERADMIN">SUPERADMIN</option>
                 </RoleSelect>
-              </p>
+                <DeleteBtn onClick={() => setDeleteTargetUserId(user.id)}>
+                  Delete User
+                </DeleteBtn>
+              </div>
+            </UserHeader>
 
-              {user.entries.length > 0 && (
-                <div>
-                  <strong>Journals</strong>
-                  <JournalList>
-                    {user.entries.map((entry:JournalEntry) => (
-                      <JournalItem key={entry.id}>
-                        <span>
-                          {entry.title} ({entry.category})
-                        </span>
-                        <DeleteBtn onClick={() => handleDeleteJournal(entry.id)}>
-                          Delete
-                        </DeleteBtn>
-                      </JournalItem>
-                    ))}
-                  </JournalList>
-                </div>
-              )}
-            </UserCard>
-          ))}
-        </UserGrid>
-      </Content>
+            {user.entries.length > 0 && (
+              <JournalList>
+                {user.entries.map((entry: JournalEntry) => (
+                  <JournalItem key={entry.id}>
+                    <EntryInfo>
+                      <strong>{entry.title}</strong>
+                      <small>({entry.category})</small>
+                    </EntryInfo>
+                    <DeleteBtn onClick={() => handleDeleteJournal(entry.id)}>
+                      Delete
+                    </DeleteBtn>
+                  </JournalItem>
+                ))}
+              </JournalList>
+            )}
+          </UserCard>
+        ))}
+      </UserGrid>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={!!deleteTargetUserId}
+        onCancel={() => setDeleteTargetUserId(null)}
+        onConfirm={confirmDeleteUser}
+      />
     </Wrapper>
   );
 }
 
+// ─── Styled Components ────────────────────────────────────────────────────────
 const Wrapper = styled.div`
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
-
-const Content = styled.div`
-  max-width: 1000px;
-  width: 100%;
-  padding: 30px;
+  padding: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
 `;
 
 const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 30px;
+
+  h1 {
+    font-size: 2rem;
+    color: ${({ theme }) => theme.text};
+  }
 `;
 
 const ToggleButton = styled.button`
-  padding: 8px 12px;
-  font-size: 0.9rem;
-  background-color: #3b82f6;
+  padding: 10px 16px;
+  background: ${({ theme }) => theme.button};
+  color: #fff;
   border: none;
-  border-radius: 5px;
-  color: white;
+  border-radius: 6px;
+  font-weight: bold;
   cursor: pointer;
-  transition: all 0.3s ease;
 
   &:hover {
-    background-color: #2563eb;
+    background: ${({ theme }) => theme.buttonHover};
   }
 `;
 
 const UserGrid = styled.div`
-  margin-top: 30px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 24px;
-  transition: all 0.3s ease-in-out;
 `;
 
 const UserCard = styled.div`
   background: ${({ theme }) => theme.card};
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s;
-  color: ${({ theme }) => theme.text};
 
   &:hover {
-    transform: translateY(-2px);
+    transform: scale(1.01);
   }
 `;
 
+const UserHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+
+  & > div {
+    display: flex;
+    gap: 10px;
+  }
+`;
+
+const UserEmail = styled.p`
+  font-weight: bold;
+  color: ${({ theme }) => theme.text};
+`;
+
 const RoleSelect = styled.select`
-  margin-left: 8px;
-  padding: 5px;
-  border-radius: 4px;
-  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: ${({ theme }) => theme.input};
+  color: ${({ theme }) => theme.text};
+  border: 1px solid ${({ theme }) => theme.border};
 `;
 
 const JournalList = styled.ul`
@@ -181,22 +228,50 @@ const JournalList = styled.ul`
 `;
 
 const JournalItem = styled.li`
-  margin-top: 5px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const EntryInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+
+  strong {
+    font-size: 1rem;
+    color: ${({ theme }) => theme.text};
+  }
+
+  small {
+    font-size: 0.8rem;
+    color: ${({ theme }) => theme.subText};
+  }
 `;
 
 const DeleteBtn = styled.button`
   background: #ef4444;
   border: none;
-  padding: 4px 8px;
+  padding: 6px 10px;
   color: white;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 0.8rem;
   cursor: pointer;
 
   &:hover {
     background: #dc2626;
   }
+`;
+
+const LoadingMsg = styled.p`
+  text-align: center;
+  font-size: 1.2rem;
+`;
+
+const ErrorMsg = styled(LoadingMsg)`
+  color: red;
 `;

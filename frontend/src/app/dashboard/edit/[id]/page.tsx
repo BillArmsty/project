@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import { useParams, useRouter } from "next/navigation";
 import styled, { createGlobalStyle } from "styled-components";
+import TagInput from "@/components/Tag";
 
 // ✅ GraphQL
 const GET_JOURNAL_ENTRY = gql`
@@ -13,6 +14,7 @@ const GET_JOURNAL_ENTRY = gql`
       title
       content
       category
+      tags
     }
   }
 `;
@@ -24,6 +26,7 @@ const UPDATE_JOURNAL_ENTRY = gql`
       title
       content
       category
+      tags
     }
   }
 `;
@@ -141,6 +144,7 @@ export default function EditJournal() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("OTHER");
+  const [tags, setTags] = useState<string[]>([]);
 
   const { data, loading, error } = useQuery(GET_JOURNAL_ENTRY, {
     variables: { id },
@@ -153,6 +157,7 @@ export default function EditJournal() {
       setTitle(entry.title);
       setContent(entry.content);
       setCategory(entry.category);
+      setTags(entry.tags || []);
     }
   }, [data]);
 
@@ -166,7 +171,7 @@ export default function EditJournal() {
     try {
       await updateJournalEntry({
         variables: {
-          data: { id, title, content, category },
+          data: { id, title, content, category, tags },
         },
       });
       router.push("/dashboard");
@@ -224,6 +229,10 @@ export default function EditJournal() {
               </CategoryBubble>
             ))}
           </CategoryContainer>
+          <div style={{ marginBottom: "15px" }}>
+            <h4>Tags</h4>
+            <TagInput tags={tags} setTags={setTags} />
+          </div>
 
           <ButtonRow>
             <SaveButton type="submit">Save Changes</SaveButton>

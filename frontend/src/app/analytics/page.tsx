@@ -6,6 +6,7 @@ import ReactCalendarHeatmap from "react-calendar-heatmap";
 import "react-calendar-heatmap/dist/styles.css";
 import styled from "styled-components";
 // import { useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -36,13 +37,14 @@ ChartJS.register(
 
 // 🔹 GraphQL Query for Fetching Journal Entries
 const GET_JOURNAL_ENTRIES = gql`
-  query GetJournalEntries {
-    getJournalEntries {
+  query GetJournalEntries($tags: [String!]) {
+    getJournalEntries(tags: $tags) {
       id
       title
       content
       category
       createdAt
+      tags
     }
   }
 `;
@@ -62,8 +64,6 @@ const ContentArea = styled.div`
   flex-direction: column;
   align-items: center;
 `;
-
-
 
 const Container = styled.div`
   max-width: 900px;
@@ -104,16 +104,28 @@ interface JournalEntry {
   content: string;
   category: string;
   createdAt: string;
+  tags?: string[];
 }
 
 export default function Analytics() {
-  const { data, loading, error } = useQuery(GET_JOURNAL_ENTRIES);
-  // const router = useRouter();
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+
+  const { data, loading, error } = useQuery(GET_JOURNAL_ENTRIES, {
+    variables: selectedTag ? { tags: [selectedTag] } : {},
+  });
 
   if (loading) return <p>Loading analytics...</p>;
   if (error || !data) return <p>Error fetching journal analytics.</p>;
 
   const entries: JournalEntry[] = data.getJournalEntries || [];
+
+  const filteredEntries = entries.filter((entry) =>
+    selectedTag ? (entry.tags || []).includes(selectedTag) : true
+  );
+
+  const uniqueTags: string[] = [
+    ...new Set(entries.flatMap((entry) => (entry.tags || []) as string[])),
+  ];
 
   // 1️⃣ 📅 Calendar Heatmap Data
   const heatmapData = entries.map((entry: JournalEntry) => ({
@@ -149,7 +161,7 @@ export default function Analytics() {
   };
 
   // 3️⃣ 📈 Word Count Trends
-  const wordCountsByDate = entries.reduce(
+  const wordCountsByDate = filteredEntries.reduce(
     (acc: Record<string, number>, entry: JournalEntry) => {
       const date = entry.createdAt.split("T")[0];
       acc[date] = (acc[date] || 0) + entry.content.split(" ").length;
@@ -213,12 +225,33 @@ export default function Analytics() {
     },
   };
   return (
-     <AnalyticsContainer>
+    <AnalyticsContainer>
       <ContentArea>
-       
-
         <Container>
           <AnalyticsTitle>📊 Journal Analytics</AnalyticsTitle>
+          {/* 🔽 Tag Filter Dropdown */}
+          {uniqueTags.length > 0 && (
+            <select
+              value={selectedTag || ""}
+              onChange={(e) => setSelectedTag(e.target.value || null)}
+              style={{
+                marginBottom: "20px",
+                padding: "10px",
+                borderRadius: "8px",
+                fontSize: "1rem",
+                background: "#1e1e2e",
+                color: "#fff",
+                border: "1px solid #555",
+              }}
+            >
+              <option value="">Filter by Tag</option>
+              {uniqueTags.map((tag) => (
+                <option key={tag} value={tag}>
+                  {tag}
+                </option>
+              ))}
+            </select>
+          )}
 
           {/* 📅 Calendar Heatmap */}
           <h3>📆 Entry Frequency Calendar</h3>

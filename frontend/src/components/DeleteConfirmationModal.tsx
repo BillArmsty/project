@@ -4,6 +4,7 @@ import styled, { createGlobalStyle } from "styled-components";
 
 interface DeleteConfirmationModalProps {
   isOpen: boolean;
+  title?: string; // Optional, customizable title
   onCancel: () => void;
   onConfirm: () => void;
 }
@@ -78,6 +79,7 @@ const DeleteButton = styled.button`
 
 export default function DeleteConfirmationModal({
   isOpen,
+  title = "Are you sure you want to delete this item?", 
   onCancel,
   onConfirm,
 }: DeleteConfirmationModalProps) {
@@ -88,7 +90,7 @@ export default function DeleteConfirmationModal({
       <GlobalStyle />
       <Overlay>
         <ModalBox>
-          <ModalTitle>Are you sure you want to delete this journal?</ModalTitle>
+          <ModalTitle>{title}</ModalTitle>
           <ButtonGroup>
             <CancelButton onClick={onCancel}>Cancel</CancelButton>
             <DeleteButton onClick={onConfirm}>Delete</DeleteButton>
