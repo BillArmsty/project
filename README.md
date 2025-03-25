@@ -1,99 +1,254 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🧠 Journaling App Backend – README
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+This document contains everything you need to run, understand, and contribute to the backend of the Journaling App, built with **NestJS**, **GraphQL**, **Prisma**, and **PostgreSQL**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 🚀 Tech Stack
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+| Component          | Tool/Library              |
+|--------------------|---------------------------|
+| Backend Framework  | NestJS                    |
+| Language           | TypeScript                |
+| ORM                | Prisma                    |
+| Database           | PostgreSQL                |
+| API Type           | GraphQL (mostly), REST    |
+| Auth               | JWT + Guards + Role-based |
+| Dev Tools          | Yarn, ESLint, Prettier    |
 
-## Project setup
+---
 
-```bash
-$ yarn install
+## 📦 Monorepo Structure
+
+```
+/root
+ ├── /backend     # (NestJS app)
+ └── /frontend    # (Next.js app)
 ```
 
-## Compile and run the project
+---
+
+## 📡 Running the Backend
+
+### ✅ Development Server
 
 ```bash
-# development
-$ yarn run start
-
-# watch mode
-$ yarn run start:dev
-
-# production mode
-$ yarn run start:prod
+cd backend
+yarn install
+yarn start:dev
 ```
 
-## Run tests
+### 🧪 Running Tests
 
 ```bash
-# unit tests
-$ yarn run test
+# Unit Tests
+yarn test
 
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
+# End-to-End Tests
+yarn test:e2e
 ```
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## 🔐 Authentication Strategy
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+- **JWT-based** stateless auth using `@nestjs/passport`
+- `JwtStrategy`, `JwtAuthGuard`, and `RolesGuard` control access
+- `@CurrentUser()` decorator injects user payload
+- Next.js frontend protects routes with **middleware-based auth**
+- Separate **refresh token** endpoint served via REST for efficiency
+
+---
+
+## 🧱 Data Model Design
+
+```prisma
+model User {
+  id        String         @id @default(uuid())
+  email     String         @unique
+  password  String
+  role      Role           @default(USER)
+  entries   JournalEntry[]
+  createdAt DateTime       @default(now())
+}
+
+model JournalEntry {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  tags      Tag[]    @relation("EntryTags")
+  category  Category
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tag {
+  id      String         @id @default(uuid())
+  name    String         @unique
+  entries JournalEntry[] @relation("EntryTags")
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPERADMIN
+}
+
+enum Category {
+  PERSONAL
+  WORK
+  TRAVEL
+  HEALTH
+  FINANCE
+  EDUCATION
+  OTHER
+}
+```
+
+---
+
+## 🔒 Security Beyond Auth
+
+- Passwords hashed with `bcrypt`
+- Guarded GraphQL mutations by roles (`@Roles()` decorator)
+- Rate-limiting via middleware (optional at scale)
+- Input validation via `class-validator`
+- XSS prevention via sanitation pipes (optional for user-generated content)
+
+---
+
+## 📈 Scaling for 1M+ Users
+
+### ✅ Potential Challenges
+- Query resolution time with deeply nested GraphQL
+- Tag-based filtering at scale
+- AI model inference cost/delay under load
+
+### 🛠 Solutions
+- Enable **DataLoader** or field-level caching
+- Paginate all journal queries
+- Move AI service to a queue-based system (e.g., BullMQ)
+- Use CDN for static AI-generated content
+- Add Redis for caching user sessions and stats
+
+### 🔄 Redesign Candidates
+- Move AI inference to async job workers
+- Split GraphQL schema into microservices
+- Batch journal update pipelines for tagging
+- Implement GraphQL federation or REST fallback
+
+---
+
+## 📜 API Documentation
+
+### 🔷 GraphQL Endpoint
+```
+POST /graphql
+```
+
+Includes:
+- `createJournalEntry(data)`
+- `updateJournalEntry(data)`
+- `deleteJournalEntry(id)`
+- `getJournalEntries(tags?, pagination?)`
+- `analyzeJournal(input)`
+- `getJournalStats`
+
+### 🔷 REST Endpoints
+
+#### POST `/ai/analyze`
+Analyzes journal text using Hugging Face model.
+
+```json
+{ "content": "Today I felt amazing..." }
+```
+
+#### GET `/auth/refresh`
+Returns new access token from refresh token cookie.
+
+---
+
+## 🧠 Technical Decision Log
+
+### 1. **GraphQL over REST**
+- **Problem**: Avoid overfetching/underfetching journals/tags
+- **Options**: REST vs GraphQL
+- **Decision**: Use GraphQL for journals, REST for simple auth/AI
+- **Trade-off**: More complexity in resolver setup
+
+### 2. **Tags as Related Model**
+- **Problem**: Users want to tag journals flexibly
+- **Options**: Inline array vs separate `Tag` model
+- **Decision**: Normalize tags as many-to-many
+- **Trade-off**: Slightly complex mutation logic
+
+### 3. **Separate AI Endpoint**
+- **Problem**: GraphQL doesn't suit file streaming or timeout-prone models
+- **Options**: Inline vs separate REST route
+- **Decision**: Use REST for AI analysis
+- **Trade-off**: One extra route, but simplified response flow
+
+### 4. **Admin Role-Based Access**
+- **Problem**: Prevent normal users from accessing `/admin`
+- **Options**: Client-only check vs server+client
+- **Decision**: Use both middleware and backend `RolesGuard`
+- **Trade-off**: Extra checks, but secure across layers
+
+---
+
+## ⚙️ Setup Instructions
+
+### Environment Setup
 
 ```bash
-$ yarn install -g mau
-$ mau deploy
+cp .env.example .env
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Edit `.env`:
 
-## Resources
+```env
+DATABASE_URL=postgresql://user:pass@localhost:5432/journals
+JWT_SECRET=your_secret
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+### Database Setup
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+yarn prisma migrate dev
+yarn prisma db seed
+```
 
-## Support
+### Running Server
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+yarn start:dev
+```
 
-## Stay in touch
+---
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## ✅ Example Queries
 
-## License
+```graphql
+mutation {
+  createJournalEntry(data: {
+    title: "Hello World",
+    content: "This is a test",
+    category: PERSONAL,
+    tags: ["test", "intro"]
+  }) {
+    id
+  }
+}
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+query {
+  getJournalEntries {
+    id
+    title
+    tags
+  }
+}
+```
+
+---

@@ -50,57 +50,74 @@
 │   └── styles/           # Global and theme styles
 ```
 
-## 📋 Feature Implementation Plan
 
-### ✅ 1. User Authentication
-- JWT issuance via NestJS
-- `bcrypt`-based password hashing
-- Login/Signup routes with GraphQL
-- Session handling in frontend via `NextAuth.js`
+## 🚀 Features
 
-### ✅ 2. Journal Entry Management
-- Full CRUD via NestJS GraphQL resolvers
-- Enum-based category selection
-- Pagination-ready querying
-- Editable in `/dashboard/create` and `/dashboard/edit/[id]`
+### ✅ 1. Authentication
+- JWT-based login/signup via NestJS
+- Passwords hashed with `bcrypt`
+- Session handled using NextAuth.js (JWT strategy)
+- Role-based routing for `/admin` vs `/dashboard`
+
+### ✅ 2. Journal Management
+- Full CRUD operations via GraphQL
+- Tag input via `react-tag-input`
+- Category enum: `PERSONAL`, `WORK`, `TRAVEL`, `EDUCATION`, `OTHER`
+- Tags stored using Prisma’s `connectOrCreate` logic
 
 ### ✅ 3. Dashboard + Analytics
-- Pie Chart: Category distribution
-- Line Chart: Word count over time
-- Summary Box: Total number of entries
-- Data transformation done client-side from GraphQL response
+- **Pie Chart**: Entry distribution by category
+- **Line Chart**: Word count over time
+- **Summary Card**: Total number of entries
+- Category & Tag filters included
 
-### ✅ 4. AI-Powered Text Generation ✨
-- Mutation: `analyzeJournal(input: AnalyzeJournalInput!)`
-- Based on Hugging Face free models:
-  - `mistralai/Mistral-7B-Instruct-v0.1`
-  - `tiiuae/falcon-7b-instruct`
-  - `openchat/openchat-3.5-0106`
-- Injects suggestion directly into the journal `content` field 
-- Graceful fallback handling if model fails
+### ✅ 4. AI Journal Suggestions
+- Mutation: `analyzeJournal(input)`
+- Fallbacks using Mistral 7B, Falcon, and OpenChat
+- Suggestions injected into journal content field
+- Graceful loading + error state
+
+### ✅ 5. Tags System
+- Create/update entries with tags
+- UI component: `TagInput` (internally manages `string[]`)
+- Backend: `Tag` model with many-to-many `@relation("EntryTags")`
+
+### ✅ 6. UI & UX Enhancements
+- Smooth loading indicators on login/submit
+- Pulse-style spinner during onboarding
+- Modal animations + input validation with feedback
+- Fully responsive dashboard layout
+
+---
 
 ## 🧬 Database Schema
+
 ```prisma
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
   password  String
-  entries   Entry[]
+  entries   JournalEntry[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Entry {
+model JournalEntry {
   id        String   @id @default(uuid())
   title     String
   content   String
   category  Category
-  mood      String?
-  sentiment String?
+  tags      Tag[]    @relation("EntryTags")
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Tag {
+  id      String         @id @default(uuid())
+  name    String         @unique
+  entries JournalEntry[] @relation("EntryTags")
 }
 
 enum Category {
@@ -112,43 +129,29 @@ enum Category {
 }
 ```
 
+---
+
 ## 📅 Development Timeline
 
-### **Phase 1 — Setup & Auth (Days 1–3)**
-- Initialize NestJS and Next.js projects
-- Configure GraphQL and Prisma
-- Implement backend auth and session-based frontend auth
+| Phase        | Days | Tasks |
+|--------------|------|-------|
+| **Phase 1**  | 1–3  | Setup Nest + Next, Auth, Prisma, JWT |
+| **Phase 2**  | 4–6  | Journal CRUD + Tagging |
+| **Phase 3**  | 7–8  | Analytics Dashboard, Charts |
+| **Phase 4**  | 9–10 | AI Suggestion, UI Polish |
 
-### **Phase 2 — Core Journal Features (Days 4–6)**
-- CRUD operations (entry, edit, delete)
-- Category selection via enum
-- Persisting entries to database
-- UI form validation
-
-### **Phase 3 — Dashboard & Analytics (Days 7–8)**
-- Dashboard layout with cards and charts
-- Word count trends (Line chart)
-- Category overview (Pie chart)
-
-### **Phase 4 — AI Integration & Polish (Days 9–10)**
-- Add AI text generation via Hugging Face
-- Hook up frontend mutation via `useAnalyzeJournal`
-- Inject suggestions into content field (non-modal)
-- UI/UX polishing (responsive layout, loading states)
-
-## 💡 Future Ideas
-- Mood detection & emoji tagging via AI
-- Calendar heatmap for journaling frequency
-- Export to PDF or Markdown
-- Offline-first support via PWA
+---
 
 ## ✅ Status Tracker
+
 | Feature                     | Status        |
 |----------------------------|---------------|
 | User Auth (Nest + NextAuth)| ✅ Done       |
 | Journal CRUD               | ✅ Done       |
 | Analytics Dashboard        | ✅ Done       |
+| Tagging System             | ✅ Done       |
 | AI Suggestion (HuggingFace)| ✅ Done       |
-| Edit + Create Flows        | ✅ Done       |
-| UI/UX Enhancements         | 🛠 In Progress |
+| Loading UX                 | ✅ Done       |
 | Sentiment Detection (AI)   | 🔜 Optional   |
+
+---
