@@ -13,6 +13,7 @@ import {
 } from "react-icons/fa";
 import { IconContext } from "react-icons/lib";
 import { gql, useQuery } from "@apollo/client";
+import { useEffect, useState } from "react";
 
 const WHO_AM_I = gql`
   query WhoAmI {
@@ -104,6 +105,12 @@ export default function Sidebar() {
   const pathname = usePathname();
   const { data, loading, error } = useQuery(WHO_AM_I);
 
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const role = data?.whoAmI?.role;
 
   const handleLogout = () => {
@@ -121,7 +128,7 @@ export default function Sidebar() {
   }
 
   if (error || !role) {
-    return null; 
+    return null;
   }
 
   return (
@@ -142,7 +149,7 @@ export default function Sidebar() {
             <FaCog /> Settings
           </NavItem>
 
-          {(role === "ADMIN" || role === "SUPERADMIN") && (
+          {isMounted && (role === "ADMIN" || role === "SUPERADMIN") && (
             <NavItem href="/admin" $active={pathname === "/admin"}>
               <FaLock /> Admin
             </NavItem>

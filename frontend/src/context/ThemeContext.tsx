@@ -1,39 +1,47 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { ThemeProvider as StyledProvider } from "styled-components";
 import { lightTheme, darkTheme } from "@/styles/theme";
 
-type Theme = "light" | "dark";
+type ThemeMode = "light" | "dark";
 
-const ThemeContext = createContext({
-  theme: "dark" as Theme,
+const ThemeContext = createContext<{
+  theme: ThemeMode;
+  toggleTheme: () => void;
+}>({
+  theme: "light",
   toggleTheme: () => {},
 });
 
-export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-  const [theme, setTheme] = useState<Theme>("dark");
+export const useThemeContext = () => useContext(ThemeContext);
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setTheme] = useState<ThemeMode>("light");
 
   useEffect(() => {
     const stored = localStorage.getItem("theme");
-    if (stored === "light" || stored === "dark") setTheme(stored);
+    if (stored === "dark" || stored === "light") {
+      setTheme(stored);
+    } else {
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      setTheme(prefersDark ? "dark" : "light");
+    }
   }, []);
 
   const toggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
+    setTheme((prev) => {
+      const next = prev === "light" ? "dark" : "light";
+      localStorage.setItem("theme", next);
+      return next;
+    });
   };
+
+  const currentTheme = theme === "light" ? lightTheme : darkTheme;
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      <StyledProvider theme={theme === "dark" ? darkTheme : lightTheme}>
-        {children}
-      </StyledProvider>
+      <StyledProvider theme={currentTheme}>{children}</StyledProvider>
     </ThemeContext.Provider>
   );
-};
-
-export const useThemeContext = () => useContext(ThemeContext);
-
-
+}

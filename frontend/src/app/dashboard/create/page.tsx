@@ -30,7 +30,7 @@ const FormContainer = styled.div`
   max-width: 720px;
   margin: 120px auto;
   padding: 30px;
-  background:${({ theme }) => theme.background};
+  background: ${({ theme }) => theme.background};
   border-radius: 20px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 `;
@@ -41,7 +41,7 @@ const Input = styled.input`
   margin-bottom: 10px;
   border-radius: 6px;
   border: 1px solid #555;
-  background:${({ theme }) => theme.background};
+  background: ${({ theme }) => theme.background};
   color: ${({ theme }) => theme.text};
 `;
 
@@ -51,7 +51,7 @@ const TextArea = styled.textarea`
   margin-bottom: 10px;
   border-radius: 6px;
   border: 1px solid #555;
-  background:${({ theme }) => theme.background};
+  background: ${({ theme }) => theme.background};
   color: ${({ theme }) => theme.text};
   min-height: 180px;
 `;
@@ -69,7 +69,7 @@ const CategoryBubble = styled.button<{ selected: boolean }>`
   border: none;
   cursor: pointer;
   background: ${({ selected }) => (selected ? "#3b82f6" : "#444")};
-  color:${({ theme }) => theme.text};
+  color: ${({ theme }) => theme.text};
   font-size: 0.85rem;
   &:hover {
     background: #2563eb;
@@ -86,13 +86,13 @@ const SaveButton = styled.button`
   flex: 1;
   padding: 12px;
   border-radius: 6px;
-  background: #3b82f6;
-  color: ${({ theme }) => theme.text};
+  background: ${({ theme }) => theme.primary};
+  color: ${({ theme }) => theme.buttonText};
+  &:hover {
+    background: ${({ theme }) => theme.primaryHover};
+  }
   font-weight: bold;
   cursor: pointer;
-  &:hover {
-    background: #2563eb;
-  }
 `;
 
 const AiButton = styled.button`
