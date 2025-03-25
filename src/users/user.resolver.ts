@@ -90,7 +90,7 @@ export class UserResolver {
   @Mutation(() => UserEntity)
   @UseGuards(JwtAuthGuard)
   @Roles(Role.ADMIN, Role.SUPERADMIN)
-  async removeUser(@Args('email') email: string) {
-    return this.userService.remove(email);
+  async removeUser(@Args('id') id: string) {
+    return this.userService.remove(id);
   }
 }

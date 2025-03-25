@@ -158,13 +158,13 @@ export class UserService {
     return true;
   }
 
-  async remove(email: string) {
+  async remove(id: string) {
     const existingUser = await this.prismaService.user.findUnique({
-      where: { email },
+      where: { id },
     });
     if (!existingUser)
-      throw new BadRequestException(`User with email #${email} not found`);
+      throw new BadRequestException(`User with id #${id} not found`);
 
-    return this.prismaService.user.delete({ where: { email } });
+    return this.prismaService.user.delete({ where: { id } });
   }
 }

@@ -105,7 +105,7 @@ type Mutation {
 
   """Register a new user and return an access token."""
   register(registerInput: RegisterRequestDTO!): RegisterResponseDTO!
-  removeUser(email: String!): UserEntity!
+  removeUser(id: String!): UserEntity!
 
   """Update an existing journal entry"""
   updateJournalEntry(data: UpdateJournalInput!): JournalEntry!
