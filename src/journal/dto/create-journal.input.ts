@@ -11,10 +11,13 @@ export class CreateJournalInput {
 
   @Field()
   @IsString()
-  @MinLength(10)
+  @MinLength(5)
   content: string;
 
   @Field(() => Category)
   @IsString()
   category: Category;
+
+  @Field(() => [String], { nullable: true })
+  tags?: string[];
 }

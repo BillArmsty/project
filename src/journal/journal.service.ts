@@ -21,9 +21,26 @@ export class JournalService {
     userId: string,
     data: CreateJournalInput,
   ): Promise<JournalEntry> {
-    return this.prismaService.journalEntry.create({
-      data: { userId, ...data },
+    const { tags = [], ...rest } = data;
+
+    const connectOrCreateTags = tags.map((name) => ({
+      where: { name },
+      create: { name },
+    }));
+
+    const createdEntry = await this.prismaService.journalEntry.create({
+      data: {
+        ...rest,
+        userId,
+        tags: { connectOrCreate: connectOrCreateTags },
+      },
+      include: { tags: true },
     });
+
+    return {
+      ...createdEntry,
+      tags: createdEntry.tags.map((tag) => tag.name),
+    };
   }
 
   /**
@@ -35,18 +52,38 @@ export class JournalService {
    */
   async findAll(
     userId: string,
-    page: number = 1,
-    limit: number = 10,
+    page = 1,
+    limit = 100,
+    tags: string[] = [],
   ): Promise<JournalEntry[]> {
-    return this.prismaService.journalEntry.findMany({
-      where: { userId },
+    const tagFilter =
+      tags.length > 0
+        ? {
+            tags: {
+              some: {
+                name: { in: tags },
+              },
+            },
+          }
+        : {};
+
+    const entries = await this.prismaService.journalEntry.findMany({
+      where: {
+        userId,
+        ...tagFilter,
+      },
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * limit,
       take: limit,
+      include: { tags: true },
     });
+
+    return entries.map((entry) => ({
+      ...entry,
+      tags: entry.tags.map((tag) => tag.name),
+    }));
   }
 
-  //retrieve journals as admin
   /**
    * Retrieve all journal entries for all users with pagination.
    * @param page - The page number for pagination.
@@ -54,14 +91,26 @@ export class JournalService {
    * @returns A paginated list of all journal entries.
    */
   async findAllAdmin(
-    page: number = 1,
-    limit: number = 10,
+    page = 1,
+    limit = 100,
+    tags: string[] = [],
   ): Promise<JournalEntry[]> {
-    return this.prismaService.journalEntry.findMany({
+    const entries = await this.prismaService.journalEntry.findMany({
+      where: {
+        ...(tags.length && {
+          tags: { some: { name: { in: tags } } },
+        }),
+      },
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * limit,
       take: limit,
+      include: { tags: true },
     });
+
+    return entries.map((entry) => ({
+      ...entry,
+      tags: entry.tags.map((tag) => tag.name),
+    }));
   }
   /**
    * Retrieve a specific journal entry by ID.
@@ -73,11 +122,17 @@ export class JournalService {
   async findOne(id: string, userId: string): Promise<JournalEntry> {
     const entry = await this.prismaService.journalEntry.findUnique({
       where: { id },
+      include: { tags: true },
     });
+
     if (!entry || entry.userId !== userId) {
       throw new NotFoundException('Journal entry not found');
     }
-    return entry;
+
+    return {
+      ...entry,
+      tags: entry.tags.map((tag) => tag.name),
+    };
   }
 
   /**
@@ -135,10 +190,44 @@ export class JournalService {
     data: UpdateJournalInput,
   ): Promise<JournalEntry> {
     const entry = await this.findOne(data.id, userId);
-    return this.prismaService.journalEntry.update({
+
+    let tagUpdates = {};
+    if (data.tags) {
+      const connectOrCreateTags = data.tags.map((name) => ({
+        where: { name },
+        create: { name },
+      }));
+
+      tagUpdates = {
+        tags: {
+          set: [],
+          connectOrCreate: connectOrCreateTags,
+        },
+      };
+    }
+
+    const updatedEntry = await this.prismaService.journalEntry.update({
       where: { id: entry.id },
-      data,
+      data: {
+        ...data,
+        ...tagUpdates,
+        tags: data.tags
+          ? {
+              set: [],
+              connectOrCreate: data.tags.map((name) => ({
+                where: { name },
+                create: { name },
+              })),
+            }
+          : undefined,
+      },
+      include: { tags: true },
     });
+
+    return {
+      ...updatedEntry,
+      tags: updatedEntry.tags.map((tag: { name: any }) => tag.name),
+    };
   }
   /**
    * Analyze word trends from journal entries.

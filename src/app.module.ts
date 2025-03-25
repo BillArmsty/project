@@ -33,6 +33,7 @@ import { AiModule } from './ai/ai.module';
       autoSchemaFile: 'schema.gql',
       playground: false,
       sortSchema: true,
+      introspection: true,
       plugins: [ApolloServerPluginLandingPageLocalDefault()],
       context: ({ req, res }) => ({ req, res }),
       path: '/graphql',

@@ -42,21 +42,27 @@ export class UserService {
   }
 
   async findUsersWithJournalsOnly({ take, skip }): Promise<UserEntity[]> {
-    return this.prismaService.user.findMany({
-      where: {
-        entries: {
-          some: {},
-        },
-      },
+    const users = await this.prismaService.user.findMany({
       include: {
-        entries: true,
+        entries: {
+          include: {
+            tags: true,
+          },
+        },
       },
       take,
       skip,
       orderBy: { createdAt: 'desc' },
     });
-  }
 
+    return users.map((user) => ({
+      ...user,
+      entries: user.entries.map((entry) => ({
+        ...entry,
+        tags: entry.tags.map((tag) => tag.name),
+      })),
+    }));
+  }
 
   async findUsers({
     take,
@@ -72,7 +78,7 @@ export class UserService {
         ? {}
         : {
             entries: {
-              some: {}, 
+              some: {},
             },
           },
       include: {
@@ -85,7 +91,7 @@ export class UserService {
       },
     });
   }
-  
+
   async findById(id: string) {
     const user = await this.prismaService.user.findUnique({
       where: { id },

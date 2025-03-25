@@ -24,15 +24,17 @@ export class JournalResolver {
 
   /**
    * Mutation to create a new journal entry.
+   * Description: 'Create a new journal entry with optional tags for categorization',
    * @param data - The input data for creating a journal entry.
    * @param user - The authenticated user.
    * @returns The newly created journal entry.
    */
   @Mutation(() => JournalEntry, {
-    description: 'Create a new journal entry for the authenticated user',
+    description:
+      'Create a new journal entry with optional tags for categorization',
   })
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.USER)
+  @Roles(Role.USER, Role.SUPERADMIN, Role.ADMIN)
   createJournalEntry(
     @Args('data') data: CreateJournalInput,
     @CurrentUser() user: UserEntity,
@@ -71,13 +73,18 @@ export class JournalResolver {
   @UseGuards(JwtAuthGuard)
   getJournalEntries(
     @CurrentUser() user: UserEntity,
-    @Args('page', { type: () => Int, nullable: true }) page: number = 1,
-    @Args('limit', { type: () => Int, nullable: true }) limit: number = 10,
+    @Args('page', { type: () => Int, nullable: true }) page = 1,
+    @Args('limit', { type: () => Int, nullable: true }) limit = 100,
+    @Args('tags', { type: () => [String], nullable: true }) tags?: string[],
+    includeEmpty?: boolean,
   ): Promise<JournalEntry[]> {
     if (!user?.id) {
       throw new UnauthorizedException('No user found in request');
     }
-    return this.journalService.findAll(user.id, page, limit);
+
+    const where = includeEmpty ? {} : { entries: { some: {} } };
+
+    return this.journalService.findAll(user.id, page, limit, tags || []);
   }
 
   /**

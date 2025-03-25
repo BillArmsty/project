@@ -64,13 +64,21 @@ export class UserResolver {
   async getUsersWithJournals(
     @Args('take', { type: () => Int, nullable: true }) take?: number,
     @Args('skip', { type: () => Int, nullable: true }) skip?: number,
-    @Args('includeEmpty', { type: () => Boolean, nullable: true }) includeEmpty = false,
+    @Args('includeEmpty', { type: () => Boolean, nullable: true }) includeEmpty = true,
   ): Promise<UserEntity[]> {
-    return this.userService.findUsers({
-      take,
-      skip,
-      includeEmpty,
-    });
+    return (
+      await this.userService.findUsers({
+        take,
+        skip,
+        includeEmpty,
+      })
+    ).map((user) => ({
+      ...user,
+      entries: user.entries.map((entry) => ({
+        ...entry,
+        tags: (entry as any).tags || [],
+      })),
+    }));
   }
 
   @Query(() => UserEntity)

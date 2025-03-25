@@ -20,12 +20,26 @@ export class JournalEntry {
   @Field(() => Category)
   category: Category;
 
+
+  @Field(() => [String])
+  tags: string[];
+
   @Field()
   createdAt: Date;
 
   @Field()
   updatedAt: Date;
 }
+
+@ObjectType()
+export class Tag {
+  @Field()
+  id: string;
+
+  @Field()
+  name: string;
+}
+
 
 
 

@@ -9,4 +9,7 @@ export class UpdateJournalInput extends PartialType(CreateJournalInput) {
 
   @Field(() => Category, { nullable: true })
   category?: Category;
+
+  @Field(() => [String], { nullable: true })
+  tags?: string[];
 }
