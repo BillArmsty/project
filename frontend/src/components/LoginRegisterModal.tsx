@@ -179,12 +179,37 @@ const PasswordRule = styled.li<{ passed: boolean }>`
   gap: 6px;
 `;
 
+// ✅ Spinner overlay
+const Spinner = styled.div`
+  width: 40px;
+  height: 40px;
+  background-color: #3b82f6;
+  border-radius: 50%;
+  animation: pulse 10s ease-in-out infinite;
+
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.3);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+`;
+
 export default function LoginRegisterModal({ isOpen, onClose }: ModalProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string>("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
 
@@ -209,6 +234,7 @@ export default function LoginRegisterModal({ isOpen, onClose }: ModalProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setIsLoading(true);
 
     if (!emailRegex.test(email)) {
       setError("Invalid email format. Use a valid email.");
@@ -237,22 +263,37 @@ export default function LoginRegisterModal({ isOpen, onClose }: ModalProps) {
       }
 
       if (token && userRole) {
-        onClose();
+     
+          onClose();
 
-        // ✅ Role-based routing
-        if (userRole === "ADMIN" || userRole === "SUPERADMIN") {
-          router.push("/admin");
-        } else {
-          router.push("/dashboard");
-        }
+          // ✅ Role-based routing
+          if (userRole === "ADMIN" || userRole === "SUPERADMIN") {
+            router.push("/admin");
+          } else {
+            router.push("/dashboard");
+          }
+       
       }
     } catch (err) {
       console.error(err);
       setError("Authentication failed. Please check your details.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   if (!isOpen) return null;
+
+  if (isLoading) {
+    return (
+      <Overlay>
+        <div style={{ textAlign: "center", color: "#fff" }}>
+          <Spinner />
+          <p style={{ marginTop: "12px" }}>Logging you in...</p>
+        </div>
+      </Overlay>
+    );
+  }
 
   return (
     <Overlay>

@@ -33,9 +33,11 @@ const UPDATE_ROLE = gql`
   }
 `;
 
-const DELETE_JOURNAL = gql`
-  mutation DeleteJournal($journalId: String!) {
-    deleteJournal(id: $journalId)
+const DELETE_JOURNAL_ENTRY = gql`
+  mutation DeleteJournalEntry($id: String!) {
+    deleteJournalEntry(id: $id) {
+      id
+    }
   }
 `;
 
@@ -60,7 +62,7 @@ export default function AdminDashboard() {
   });
 
   const [updateUserRole] = useMutation(UPDATE_ROLE);
-  const [deleteJournal] = useMutation(DELETE_JOURNAL);
+  const [deleteJournal] = useMutation(DELETE_JOURNAL_ENTRY);
   const [deleteUser] = useMutation(REMOVE_USER);
 
   const handleRoleChange = async (userId: string, newRole: Role) => {
@@ -69,7 +71,7 @@ export default function AdminDashboard() {
   };
 
   const handleDeleteJournal = async (journalId: string) => {
-    await deleteJournal({ variables: { journalId } });
+    await deleteJournal({ variables: { id: journalId } });
     refetch();
   };
 
