@@ -217,7 +217,7 @@ JWT_SECRET=your_secret
 
 ```bash
 yarn prisma migrate dev
-yarn prisma db seed
+
 ```
 
 ### Running Server
