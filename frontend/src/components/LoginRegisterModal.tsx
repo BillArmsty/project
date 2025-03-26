@@ -1,6 +1,5 @@
 "use client";
-import React from 'react';
-
+import React from "react";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -28,7 +27,7 @@ const REGISTER_MUTATION = gql`
   }
 `;
 
- const LOGIN_MUTATION = gql`
+const LOGIN_MUTATION = gql`
   mutation Login($email: String!, $password: String!) {
     login(loginInput: { email: $email, password: $password }) {
       access_token
@@ -251,30 +250,28 @@ export default function LoginRegisterModal({ isOpen, onClose }: ModalProps) {
     }
 
     try {
-      let token = "";
-      let userRole = "";
-
-      if (isLogin) {
-        const { data } = await login({ variables: { email, password } });
-        token = data?.login?.access_token;
-        userRole = data?.login?.user?.role;
-      } else {
-        const { data } = await register({ variables: { email, password } });
-        token = data?.register?.access_token;
-        userRole = data?.register?.user?.role;
+      if (!isLogin) {
+        // For registration, register the user and redirect to landing page
+        await register({ variables: { email, password } });
+        onClose();
+        router.push("/");
+        return;
       }
 
-      if (token && userRole) {
-     
-          onClose();
+      // For login
+      const { data } = await login({ variables: { email, password } });
+      const token = data?.login?.access_token;
+      const userRole = data?.login?.user?.role;
 
-          // ✅ Role-based routing
-          if (userRole === "ADMIN" || userRole === "SUPERADMIN") {
-            router.push("/admin");
-          } else {
-            router.push("/dashboard");
-          }
-       
+      if (token && userRole) {
+        onClose();
+
+        // Role-based routing
+        if (userRole === "ADMIN" || userRole === "SUPERADMIN") {
+          router.push("/admin");
+        } else {
+          router.push("/dashboard");
+        }
       }
     } catch (err) {
       console.error(err);
