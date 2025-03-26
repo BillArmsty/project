@@ -27,8 +27,9 @@ describe('E2E: User Authentication & Journal Entries', () => {
     await app.init();
 
     // Cleanup DB before running tests
-    await prisma.journalEntry.deleteMany();
-    await prisma.user.deleteMany();
+    // await prisma.journalEntry.deleteMany();
+    // await prisma.user.deleteMany();
+    // await prisma.tag.deleteMany()
   });
 
   afterAll(async () => {
@@ -100,6 +101,7 @@ describe('E2E: User Authentication & Journal Entries', () => {
           createJournalEntry(data: { title: "My First Entry", content: "Hello world!", category: PERSONAL }) {
             id
             title
+            
           }
         }
       `,

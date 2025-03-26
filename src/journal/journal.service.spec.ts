@@ -33,15 +33,29 @@ describe('JournalService', () => {
   });
 
   it('should create a journal entry', async () => {
-    prismaServiceMock.journalEntry.create.mockResolvedValue({ id: '123' });
+    prismaServiceMock.journalEntry.create.mockResolvedValue({
+      id: '123',
+      title: 'Test',
+      content: 'Hello World',
+      category: 'OTHER',
+      tags: [{ name: 'hello' }, { name: 'sample' }], 
+    });
 
     const result = await journalService.create('user123', {
       title: 'Test',
       content: 'Hello World',
       category: 'OTHER',
+      tags: ['hello', 'sample'],
     });
 
-    expect(result).toEqual({ id: '123' });
+    expect(result).toEqual({
+      id: '123',
+      title: 'Test',
+      content: 'Hello World',
+      category: 'OTHER',
+      tags: ['hello', 'sample'], 
+    });
+
     expect(prismaServiceMock.journalEntry.create).toHaveBeenCalled();
   });
 });

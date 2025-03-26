@@ -26,7 +26,7 @@ describe('JournalResolver', () => {
     journalServiceMock.create = jest.fn().mockResolvedValue({ id: '123' });
 
     const userEntityMock = { id: 'user123', email: 'test@example.com', role: Role.USER, password: 'password', createdAt: new Date() };
-    const result = await journalResolver.createJournalEntry({ title: 'Test', content: 'Hello' , category: 'OTHER'}, userEntityMock);
+    const result = await journalResolver.createJournalEntry({ title: 'Test', content: 'Hello' , category: 'OTHER', tags: ["hello", "sample"]}, userEntityMock);
 
     expect(result).toEqual({ id: '123' });
   });
