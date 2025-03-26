@@ -31,5 +31,6 @@ NEXT_PUBLIC_OPENAI_API_KEY=mykey
 ### 4. Start the  server
 
 ```bash
+yarn next build
 yarn start
 ```
